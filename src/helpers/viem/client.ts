@@ -1,4 +1,4 @@
-import {  custom, publicActions, walletActions, createTestClient, TestClient } from "viem";
+import {  custom, publicActions, walletActions, createTestClient } from "viem";
 import { polygonMumbai } from "viem/chains";
 import "viem/window";
 
