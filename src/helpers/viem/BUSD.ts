@@ -1,15 +1,16 @@
-import { Abi, Address, getContract, GetContractReturnType, PublicClient, WalletClient } from 'viem'
+import { Abi, Address, getContract, GetContractReturnType, PublicClient, WalletClient, Account } from 'viem'
 import { getTestClient } from './client'
 import BUSD from '../../assets/BUSD.json'
+// import chains from '../../assets/chains.json'
 
-const contractParameters = {
+const getContractParameters = () => ({
     address: BUSD.networks["80001"].address as Address,
     abi: BUSD.abi as Abi,
     publicClient: getTestClient()
-};
+});
 
 function getContractObject(): GetContractReturnType<typeof BUSD.abi, PublicClient, WalletClient> {
-    return getContract(contractParameters) as GetContractReturnType<typeof BUSD.abi, PublicClient, WalletClient>;
+    return getContract(getContractParameters() as any) as GetContractReturnType<typeof BUSD.abi, PublicClient, WalletClient>;
 }
 
 export type ContractDataType = {
@@ -17,18 +18,32 @@ export type ContractDataType = {
 }
 
 export async function getBUSDContractData(): Promise<ContractDataType> {
-    const totalSupply = await getContractObject().read.totalSupply()
+    let totalSupply: BigInt = 0n;
+    try {
+        totalSupply = await getContractObject().read.totalSupply() as BigInt;
+    } catch(_) {}
+
     return {
         totalSupply: totalSupply as BigInt
     }
 }
 
 export async function checkSpenderAllowance(owner: string, spender: string): Promise<BigInt> {
-    return await (getContractObject().read.allowance([owner, spender])) as BigInt;
+    let allowance: BigInt = 0n;
+    try {
+        allowance =  await (getContractObject().read.allowance([owner, spender])) as BigInt;
+    } catch(_) {}
+
+    return allowance;
 }
 
 export async function getBalanceValue(owner: string): Promise<BigInt> {
-    return await (getContractObject().read.balanceOf([owner])) as BigInt;
+    let balanceOf: BigInt = 0n;
+    try {
+        balanceOf = await (getContractObject().read.balanceOf([owner])) as BigInt;
+    } catch(_) {}
+
+    return  balanceOf;
 }
 
 export async function getOwner(): Promise<string> {
@@ -37,65 +52,65 @@ export async function getOwner(): Promise<string> {
 
 export async function sendTransfer(account: string, recipient: string, amount: number): Promise<void> {
         await getTestClient().writeContract({
-        ...contractParameters,
+        ...getContractParameters(),
         functionName: 'transfer',
         args: [recipient, amount],
-        account
+        account: account as unknown as Account
     })
 }
 
 export async function sendTransferFrom(account: string, from: string, recipient: string, amount: number): Promise<void> {
     await getTestClient().writeContract({
-        ...contractParameters,
+        ...getContractParameters(),
         functionName: 'transferFrom',
         args: [from, recipient, amount], 
-        account
+        account: account as unknown as Account
       })
 }
 
 export async function approve(account: string, spender: string, amount: number): Promise<void> {
     await getTestClient().writeContract({
-        ...contractParameters,
+        ...getContractParameters(),
         functionName: 'approve',
         args: [spender, amount], 
-        account
+        account: account as unknown as Account
       })
 }
 
 
 export async function mint(account: string, amount: number): Promise<void> {
     await getTestClient().writeContract({
-        ...contractParameters,
+        ...getContractParameters(),
         functionName: 'mint',
         args: [amount], 
-        account
+        account: account as unknown as Account
       })
 }
 
 export async function burn(account: string, amount: number): Promise<void> {
     await getTestClient().writeContract({
-        ...contractParameters,
+        ...getContractParameters(),
         functionName: 'burn',
         args: [amount], 
-        account
+        account: account as unknown as Account
       })
 }
 
 export async function transferOwnership(account: string, newOwner: string): Promise<void> {
     await getTestClient().writeContract({
-        ...contractParameters,
+        ...getContractParameters(),
         functionName: 'transferOwnership',
         args: [account, newOwner], 
-        account
+        account: account as unknown as Account
       })
 }
 
 export async function renounceOwnership(account: string): Promise<void> {
     await getTestClient().writeContract({
-        ...contractParameters,
+        ...getContractParameters(),
         functionName: 'renounceOwnership',
         args: [account], 
-        account
+        account: account as unknown as Account
       })
 }
 

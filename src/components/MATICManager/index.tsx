@@ -1,7 +1,7 @@
 import { useCallback, useContext, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { getBalanceValue, sendTransfer } from "../../helpers/viem/MATIC";
 import { AppStateContext } from '../../context/AppStateContext';
-import { Box, Button, Input, Stack, Typography, CircularProgress } from '@mui/material';
+import { Box, Button, Input, Stack, Typography, CircularProgress, Divider } from '@mui/material';
 import { genericErrorAlert, genericSuccessAlert } from '../../helpers/viem/notifications';
 
 export default forwardRef((_, ref) => {
@@ -18,8 +18,8 @@ export default forwardRef((_, ref) => {
     }, [appData.address]);
 
     useImperativeHandle(ref, () => ({
-        refresh() {
-            triggerRefresh();
+        refresh: async () => {
+            await triggerRefresh();
         }
     }));
 
@@ -44,21 +44,25 @@ export default forwardRef((_, ref) => {
     return !appData.address? null : (
         <>
             { !balanceValue ? (<CircularProgress />) : (
-                <div className={"p-4 mx-4 shadow-md bg-gradient-to-br from-blue-100 to-zinc-200 rounded-md"} >
-                    <Typography variant='h4' className='pb-5 underline'>MATIC</Typography>
-                    <Stack direction="column" gap={2}>
+                <div className={"p-4 mx-4 shadow-md rounded-md bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-neutral-100 via-zinc-100 to-neutral-100"} >
+                    <div className={"select-none p-2 mb-4 w-full shadow-md rounded-md text-white bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-600 via-slate-700 to-sky-200"}>
+                        <Typography variant='h5'>MATIC</Typography>
+                    </div>
+                    <Stack direction="column" gap={2} divider={<Divider />}>
                         <div>
                             <Stack direction="row" gap={2}>
-                                <Typography>Balance</Typography>
+                                <Typography fontWeight={700}>Balance</Typography>
                                 <Typography className='text-blue-700'>{balanceValue.toString()}</Typography>
                             </Stack>
                         </div>
                         <div>
                             <Box component="fieldset">
-                                <legend>Transfer</legend>
+                                <legend>
+                                    <Typography variant='overline'>Transfer</Typography>                                        
+                                </legend>
                                 <Stack direction="row" gap={2}>                                
-                                    <Input type="number" placeholder="Value" onChange={e => setTransferValue(e.target.value)} />
                                     <Input type="text" placeholder="Recipient Address" onChange={e => setTransferRecipient(e.target.value)} />
+                                    <Input type="number" inputProps={{ min: "1" }} placeholder="Value" onChange={e => setTransferValue(e.target.value)} />
                                     <Button onClick={triggerSendTransfer} variant='contained' size='small'>
                                         Transfer      
                                     </Button>

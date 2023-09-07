@@ -14,16 +14,20 @@ import './App.css'
 import HeaderBar from './components/HeaderBar';
 
 type RefreshableComponent = {
-  refresh: () => void
+  refresh: () => Promise<void>
 }
 
 function App() {
   const BUSDRef =  createRef<RefreshableComponent>();
   const MATICRef = createRef<RefreshableComponent>();
 
-  const refresh = useCallback(() => {
-    BUSDRef.current && BUSDRef.current.refresh();
-    MATICRef.current && MATICRef.current.refresh();
+  const refresh = useCallback(async () => {
+    try {
+      BUSDRef.current  && await BUSDRef.current.refresh();
+    } catch(_) {}
+    try {
+      MATICRef.current && await MATICRef.current.refresh();
+    } catch(_) {}
   }, []);
 
   return (
@@ -39,7 +43,7 @@ function App() {
             <MATICManager ref={MATICRef} />
           </div>
         </div>
-        <ToastContainer />
+        <ToastContainer pauseOnFocusLoss={false} />
       </AppStateProvider>
     </div>
   )

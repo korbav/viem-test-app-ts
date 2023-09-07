@@ -3,7 +3,7 @@ import { Stack, Typography } from '@mui/material';
 import { AppStateContext } from "../../context/AppStateContext";
 import RefreshData from "../RefreshData";
 
-export default function HeaderBar({ refresh }: { refresh: () => void }) {  
+export default function HeaderBar({ refresh }: { refresh: () => Promise<void> }) {  
     const { appData } = useContext(AppStateContext);
   
     return !appData.address ? null : (

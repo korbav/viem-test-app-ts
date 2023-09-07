@@ -1,5 +1,5 @@
 import { useCallback, useContext, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Input, Button, Typography, Stack, Box, CircularProgress } from "@mui/material";
+import { Input, Button, Typography, Stack, Box, CircularProgress, Divider } from "@mui/material";
 import { 
     getBUSDContractData, 
     checkSpenderAllowance, 
@@ -17,6 +17,7 @@ import {
 import { AppStateContext } from '../../context/AppStateContext';
 import { toast } from 'react-toastify';
 import { genericErrorAlert, genericSuccessAlert } from '../../helpers/viem/notifications';
+
 
 
 
@@ -48,9 +49,9 @@ export default forwardRef((_, ref) => {
     }, [appData.address]);
 
     useImperativeHandle(ref, () => ({
-        refresh() {
-            triggerRefresh()
-        }
+        refresh: async () => {
+           await triggerRefresh();
+       }
     }));
 
     useEffect(() => {
@@ -68,7 +69,7 @@ export default forwardRef((_, ref) => {
 
     const triggerSendTransfer = useCallback(() => {
         if(transferRecipient && transferValue) {
-            sendTransfer(appData.address!, transferRecipient, parseInt(transferValue, 10))
+            sendTransfer((appData.address)!, transferRecipient, parseInt(transferValue, 10))
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);
@@ -156,26 +157,33 @@ export default forwardRef((_, ref) => {
     return !appData.address? null : (
         <>
             { !contractData ? (<CircularProgress />) : (
-                <div className={"p-4 mx-4 shadow-md bg-gradient-to-br from-blue-100 to-zinc-200 rounded-md"} >
-                    <Typography variant='h4' className='pb-5 underline'>BUSD</Typography>
-                    <Stack direction="column" gap={2}>
+                <div className={"p-4 mx-4 shadow-md rounded-md bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-neutral-100 via-zinc-100 to-neutral-100"} >
+                    <div className={"select-none p-2 mb-4 w-full shadow-md rounded-md text-white bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-600 via-slate-700 to-sky-200"}>
+                        <Typography variant='h5'>BUSD</Typography>
+                    </div>
+                    <Stack direction="column" gap={2} divider={<Divider />}>
                         <div>
                             <Stack direction="row" gap={2}>
-                                <Typography>Contract total supply</Typography>
+                                <Typography fontWeight={700}>Total Supply</Typography>
                                 <Typography className='text-blue-700'>{contractData.totalSupply.toString()}</Typography>
                             </Stack>
                         </div>
                         <div>
                             <Stack direction="row" gap={2}>
-                                <Typography>Balance</Typography>
+                                <Typography fontWeight={700}>Balance</Typography>
                                 <Typography className='text-blue-700'>{balanceValue.toString()}</Typography>
                             </Stack>
                         </div>
                         <div>
                             <Box component="fieldset">
-                                <legend>Check allowance of a spender</legend>
+                                <legend>
+                                    <Typography variant='overline'>Check allowance of a spender</Typography>    
+                                </legend>
                                 <Stack direction="row" gap={2}>                                
                                     <Input type="text" placeholder="Spender Address" onChange={e => setSpender(e.target.value)} />
+                                    <Button onClick={checkAllowance} variant='contained' size='small'>
+                                        Check allowance      
+                                    </Button>
                                     { allowanceValue && (
                                         <div>
                                             <Stack direction="row" gap={2}>
@@ -184,18 +192,17 @@ export default forwardRef((_, ref) => {
                                             </Stack>
                                         </div>
                                     )}
-                                    <Button onClick={checkAllowance} variant='contained' size='small'>
-                                        Check allowance      
-                                    </Button>
                                 </Stack>
                             </Box>
                         </div>
                         <div>
                             <Box component="fieldset">
-                                <legend>Transfer tokens</legend>
+                                <legend>
+                                    <Typography variant='overline'>Transfer tokens</Typography>                                        
+                                </legend>
                                 <Stack direction="row" gap={2}>                                
-                                    <Input type="number" placeholder="Value" onChange={e => setTransferValue(e.target.value)} />
                                     <Input type="text" placeholder="Recipient Address" onChange={e => setTransferRecipient(e.target.value)} />
+                                    <Input type="number" inputProps={{ min: "1" }} placeholder="Value" onChange={e => setTransferValue(e.target.value)} />
                                     <Button onClick={triggerSendTransfer} variant='contained' size='small'>
                                         Transfer     
                                     </Button>
@@ -204,11 +211,13 @@ export default forwardRef((_, ref) => {
                         </div>
                         <div>
                             <Box component="fieldset">
-                                <legend>TransferFrom</legend>
+                                <legend>
+                                    <Typography variant='overline'>Transfer From</Typography>                                        
+                                </legend>
                                 <Stack direction="row" gap={2}>                                
                                     <Input type="string" placeholder="From Address" onChange={e => setTransferFromAddress(e.target.value)} />
-                                    <Input type="number" placeholder="Value" onChange={e => setTransferFromValue(e.target.value)} />
-                                    <Input type="text" placeholder="Recipient address" onChange={e => setTransferFromRecipient(e.target.value)} />
+                                    <Input type="text" placeholder="Recipient Address" onChange={e => setTransferFromRecipient(e.target.value)} />
+                                    <Input type="number" inputProps={{ min: "1" }} placeholder="Value" onChange={e => setTransferFromValue(e.target.value)} />
                                     <Button onClick={triggerSendTransferFrom} variant='contained' size='small'>
                                         Transfer
                                     </Button>
@@ -217,21 +226,25 @@ export default forwardRef((_, ref) => {
                         </div>
                         <div>
                             <Box component="fieldset">
-                                <legend>Approve</legend>
+                                <legend>
+                                    <Typography variant='overline'>Approve</Typography>                                        
+                                </legend>
                                 <Stack direction="row" gap={2}>    
                                     <Input type="string" placeholder="Spender Address" onChange={e => setApproveSpenderAddress(e.target.value)} />
-                                    <Input type="number" placeholder="Value" onChange={e => setApproveSpenderAmount(e.target.value)} />
+                                    <Input type="number" inputProps={{ min: "1" }} placeholder="Value" onChange={e => setApproveSpenderAmount(e.target.value)} />
                                     <Button onClick={triggerApprove} variant='contained' size='small'>
-                                        Approve!       
+                                        Approve
                                     </Button>
                                 </Stack>
                             </Box>
                         </div>
                         <div>
                             <Box component="fieldset">
-                                <legend>Mint</legend>
+                                <legend>
+                                    <Typography variant='overline'>Mint</Typography>                                        
+                                </legend>
                                 <Stack direction="row" gap={2}>    
-                                    <Input type="number" placeholder="Value" onChange={e => setMintvalue(e.target.value)} />
+                                    <Input type="number" inputProps={{ min: "1" }} placeholder="Value" onChange={e => setMintvalue(e.target.value)} />
                                     <Button onClick={triggerMint} variant='contained' size='small'>
                                         Mint     
                                     </Button>
@@ -240,9 +253,11 @@ export default forwardRef((_, ref) => {
                         </div>
                         <div>
                             <Box component="fieldset">
-                                <legend>Burn</legend>
+                                <legend>
+                                    <Typography variant='overline'>Burn</Typography>                                        
+                                </legend>
                                 <Stack direction="row" gap={2}>    
-                                    <Input type="number" placeholder="Value" onChange={e => setBurnValue(e.target.value)} />
+                                    <Input type="number" inputProps={{ min: "1" }} placeholder="Value" onChange={e => setBurnValue(e.target.value)} />
                                     <Button onClick={triggerBurn} variant='contained' size='small'>
                                         Burn       
                                     </Button>
@@ -251,7 +266,9 @@ export default forwardRef((_, ref) => {
                         </div>
                         <div>
                             <Box component="fieldset">
-                                <legend>Transfer Ownership</legend>
+                                <legend>
+                                    <Typography variant='overline'>Transfer Ownership</Typography>                                        
+                                </legend>
                                 <Stack direction="row" gap={2}>    
                                     <Input type="text" placeholder="To New Owner Address" onChange={e => setNewOwner(e.target.value)} />
                                     <Button onClick={triggerTransferOwnerShip} variant='contained' size='small'>
@@ -262,7 +279,9 @@ export default forwardRef((_, ref) => {
                         </div>
                         <div>
                             <Box component="fieldset">
-                                <legend>Renounce Ownership</legend>
+                                <legend>
+                                    <Typography variant='overline'>Renounce Ownership</Typography>                                        
+                                </legend>
                                 <Stack direction="row" gap={2}>    
                                     <Button onClick={triggerRenounceOwnerShip} variant='contained' size='small'>
                                         Renounce Ownership    
