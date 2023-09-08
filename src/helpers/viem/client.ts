@@ -3,7 +3,11 @@ import * as chains from "viem/chains";
 import "viem/window";
 
 
-function getTestClient() {
+export function isPolygonMumbai() {
+    return parseInt((window.ethereum! as any).chainId, 16) === chains.polygonMumbai.id;
+}
+
+export function getTestClient() {
     if (window.ethereum) {
         return createTestClient({
             chain: Object.values(chains)
@@ -17,8 +21,4 @@ function getTestClient() {
         const errorMessage ="MetaMask or another web3 wallet is not installed. Please install one to proceed.";
         throw new Error(errorMessage);
     }
-}
-
-export {
-    getTestClient,
 }
