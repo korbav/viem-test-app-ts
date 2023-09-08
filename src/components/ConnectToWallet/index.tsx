@@ -5,6 +5,7 @@ import ConnectIcon from '@mui/icons-material/ConnectedTv';
 import { getTestClient } from "../../helpers/viem/client";
 import Status from "../Status";
 import { AppStateContext } from "../../context/AppStateContext";
+import { getOwner } from "../../helpers/viem/BUSD";
 
 export default function () {
   const { appData, setAppData } = useContext(AppStateContext);
@@ -14,13 +15,15 @@ export default function () {
     toast('Configuration has changed, Auto updating...');
   };
 
-  const handleAccountsChanged = useCallback((accounts: string[]) => {
+  const handleAccountsChanged = useCallback(async (accounts: string[]) => {
     try {
       const address = accounts[0];
+      const owner = (await getOwner()).toString();
       if(connectedToWallet && appData.address && address.toString().toLowerCase() !== appData.address.toString().toLowerCase()) {
         setAppData({
           ...appData,
-          address
+          address,
+          owner
         });
         handleConfigurationChanged()
       }
@@ -34,10 +37,12 @@ export default function () {
       if(chainId.toString().toLowerCase() !== appData.chainId.toString().toLowerCase()) {
         const accounts = await getTestClient().requestAddresses();
         const address = accounts[0];
+        const owner = (await getOwner()).toString();
         setAppData({
           ...appData,
           address,
-          chainId
+          chainId,
+          owner
         });
         handleConfigurationChanged();
       }

@@ -1,5 +1,6 @@
 import { useCallback, useContext, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Input, Button, Typography, Stack, Box, CircularProgress, Divider } from "@mui/material";
+import WarningIcon from "@mui/icons-material/WarningRounded";
 import { 
     getBUSDContractData, 
     checkSpenderAllowance, 
@@ -10,9 +11,9 @@ import {
     burn, 
     approve, 
     transferOwnership, 
-    renounceOwnership, 
-    getOwner,
-    ContractDataType
+    renounceOwnership,
+    ContractDataType,
+    getOwner
 } from "../../helpers/viem/BUSD";
 import { AppStateContext } from '../../context/AppStateContext';
 import { toast } from 'react-toastify';
@@ -22,7 +23,7 @@ import { genericErrorAlert, genericSuccessAlert } from '../../helpers/viem/notif
 
 
 export default forwardRef((_, ref) => {
-    const { appData } = useContext(AppStateContext);
+    const { appData, setAppData } = useContext(AppStateContext);
     const [contractData, setContractData] = useState<ContractDataType>()
     const [spender, setSpender] = useState<string>()
     const [allowanceValue, setAllowanceValue] = useState<string>()
@@ -57,6 +58,13 @@ export default forwardRef((_, ref) => {
     useEffect(() => {
         if(appData.address) {
             triggerRefresh()
+            getOwner()
+                .then((owner) => {
+                    setAppData({
+                        ...appData, 
+                        owner: owner.toString()
+                    })
+                })
         }
     }, [appData.address, appData.chainId])
 
@@ -121,38 +129,33 @@ export default forwardRef((_, ref) => {
         toast("Cannot proceed since you are not owning this contract.", { type: "error" })
     }, []);
 
-    const checkIsOwner = useCallback(async () => {
-        const owner = await getOwner();
-        return owner == appData.address;
-    }, [appData.address]);
+    const checkIsOwner = useCallback(() => {
+        return appData.owner?.toLowerCase() === appData.address?.toLowerCase();
+    }, [appData.address, appData.owner]);
 
     const triggerTransferOwnerShip = useCallback(() => {
-        checkIsOwner().then((isOwner) => {
-            if(isOwner) {
-                transferOwnership(appData.address!, newOwner)
-                    .then(() => genericSuccessAlert())
-                    .catch((e) => {
-                        genericErrorAlert(e);
-                    });
-            } else {
-                alertNotOwner();
-            }
-        });
-    }, [newOwner]);
+        if(checkIsOwner()) {
+            transferOwnership(appData.address!, newOwner)
+                .then(() => genericSuccessAlert())
+                .catch((e) => {
+                    genericErrorAlert(e);
+                });
+        } else {
+            alertNotOwner();
+        }
+    }, [newOwner, appData.address]);
 
     const triggerRenounceOwnerShip = useCallback(() => {
-        checkIsOwner().then((isOwner) => {
-            if(isOwner) {
-                renounceOwnership(appData.address!)
-                    .then(() => genericSuccessAlert())
-                    .catch((e) => {
-                        genericErrorAlert(e);
-                    });
-            } else {
-                alertNotOwner();
-            }
-        });
-    }, []);
+        if(checkIsOwner()) {
+            renounceOwnership(appData.address!)
+                .then(() => genericSuccessAlert())
+                .catch((e) => {
+                    genericErrorAlert(e);
+                });
+        } else {
+            alertNotOwner();
+        }
+    }, [appData.address]);
 
     return !appData.address? null : (
         <>
@@ -264,7 +267,19 @@ export default forwardRef((_, ref) => {
                                 </Stack>
                             </Box>
                         </div>
-                        <div>
+                        {
+                            !checkIsOwner() && (
+                                <div className='select-none'>
+                                    <Stack direction="row" gap={1} alignItems={'center'}>
+                                        <WarningIcon fontSize='small' />
+                                        <Typography variant='overline'>YOU ARE NOT THE OWNER</Typography> 
+                                        <Typography variant='overline'>({appData.owner})</Typography> 
+                                    </Stack>
+                                </div>
+                            )
+                        }
+                        
+                        <div className={`${checkIsOwner() ? "" : "touch-none select-none pointer-events-none opacity-30" }`}>
                             <Box component="fieldset">
                                 <legend>
                                     <Typography variant='overline'>Transfer Ownership</Typography>                                        
@@ -277,7 +292,7 @@ export default forwardRef((_, ref) => {
                                 </Stack>
                             </Box>
                         </div>
-                        <div>
+                        <div className={`${checkIsOwner() ? "" : "touch-none select-none pointer-events-none opacity-30" }`}>
                             <Box component="fieldset">
                                 <legend>
                                     <Typography variant='overline'>Renounce Ownership</Typography>                                        

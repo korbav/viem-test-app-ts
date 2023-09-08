@@ -1,7 +1,6 @@
 import { Abi, Address, getContract, GetContractReturnType, PublicClient, WalletClient, Account } from 'viem'
 import { getTestClient } from './client'
 import BUSD from '../../assets/BUSD.json'
-// import chains from '../../assets/chains.json'
 
 const getContractParameters = () => ({
     address: BUSD.networks["80001"].address as Address,
@@ -21,7 +20,9 @@ export async function getBUSDContractData(): Promise<ContractDataType> {
     let totalSupply: BigInt = 0n;
     try {
         totalSupply = await getContractObject().read.totalSupply() as BigInt;
-    } catch(_) {}
+    } catch (e) {
+        console.log(e)
+    }
 
     return {
         totalSupply: totalSupply as BigInt
@@ -31,8 +32,10 @@ export async function getBUSDContractData(): Promise<ContractDataType> {
 export async function checkSpenderAllowance(owner: string, spender: string): Promise<BigInt> {
     let allowance: BigInt = 0n;
     try {
-        allowance =  await (getContractObject().read.allowance([owner, spender])) as BigInt;
-    } catch(_) {}
+        allowance = await (getContractObject().read.allowance([owner, spender])) as BigInt;
+    } catch (e) {
+        console.log(e)
+    }
 
     return allowance;
 }
@@ -41,17 +44,24 @@ export async function getBalanceValue(owner: string): Promise<BigInt> {
     let balanceOf: BigInt = 0n;
     try {
         balanceOf = await (getContractObject().read.balanceOf([owner])) as BigInt;
-    } catch(_) {}
+    } catch (e) {
+        console.log(e)
+    }
 
-    return  balanceOf;
+    return balanceOf;
 }
 
-export async function getOwner(): Promise<string> {
-    return await getContractObject().read.getOwner().toString();
+export async function getOwner(): Promise<any> {
+    let owner: any = "N/A";
+    try {
+        owner = await getContractObject().read.getOwner();
+    } catch (_) {
+    }
+    return owner;
 }
 
 export async function sendTransfer(account: string, recipient: string, amount: number): Promise<void> {
-        await getTestClient().writeContract({
+    await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'transfer',
         args: [recipient, amount],
@@ -63,18 +73,18 @@ export async function sendTransferFrom(account: string, from: string, recipient:
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'transferFrom',
-        args: [from, recipient, amount], 
+        args: [from, recipient, amount],
         account: account as unknown as Account
-      })
+    })
 }
 
 export async function approve(account: string, spender: string, amount: number): Promise<void> {
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'approve',
-        args: [spender, amount], 
+        args: [spender, amount],
         account: account as unknown as Account
-      })
+    })
 }
 
 
@@ -82,36 +92,36 @@ export async function mint(account: string, amount: number): Promise<void> {
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'mint',
-        args: [amount], 
+        args: [amount],
         account: account as unknown as Account
-      })
+    })
 }
 
 export async function burn(account: string, amount: number): Promise<void> {
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'burn',
-        args: [amount], 
+        args: [amount],
         account: account as unknown as Account
-      })
+    })
 }
 
 export async function transferOwnership(account: string, newOwner: string): Promise<void> {
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'transferOwnership',
-        args: [account, newOwner], 
+        args: [account, newOwner],
         account: account as unknown as Account
-      })
+    })
 }
 
 export async function renounceOwnership(account: string): Promise<void> {
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'renounceOwnership',
-        args: [account], 
+        args: [account],
         account: account as unknown as Account
-      })
+    })
 }
 
 

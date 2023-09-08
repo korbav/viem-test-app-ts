@@ -2,7 +2,8 @@ import  { PropsWithChildren, createContext, useState } from "react";
 
 export type AppState = {
   address: string|null,
-  chainId: string
+  chainId: string,
+  owner: string
 }
 export type AppStateContextType = {
   appData: AppState,
@@ -11,7 +12,8 @@ export type AppStateContextType = {
 
 const intialState: AppState = {
   address: null,
-  chainId: ""
+  chainId: "",
+  owner: ""
 };
 
 export const AppStateContext = createContext<AppStateContextType>({
@@ -22,7 +24,8 @@ export const AppStateContext = createContext<AppStateContextType>({
 export function AppStateProvider({ children }: PropsWithChildren ) {
   const [appData, setAppData] = useState<AppState>({
     address: null,
-    chainId: window.ethereum ? ((window.ethereum as any).chainId || "")  : ""
+    chainId: window.ethereum ? ((window.ethereum as any).chainId || "")  : "",
+    owner: ""
   });
 
   return (

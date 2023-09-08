@@ -19,3 +19,7 @@ body {
   min-height: 100vh;
   background-color: lightgrey;
 }
+
+legend {
+  text-align: left;
+}
