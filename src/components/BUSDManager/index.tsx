@@ -1,6 +1,7 @@
 import { useCallback, useContext, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Input, Button, Typography, Stack, Box, CircularProgress, Divider } from "@mui/material";
 import WarningIcon from "@mui/icons-material/WarningRounded";
+import { BinanceUsd } from 'cryptocons'
 import { 
     getBUSDContractData, 
     checkSpenderAllowance, 
@@ -162,7 +163,10 @@ export default forwardRef((_, ref) => {
             { !contractData ? (<CircularProgress />) : (
                 <div className={"p-4 mx-4 shadow-md rounded-md bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-neutral-100 via-zinc-100 to-neutral-100"} >
                     <div className={"select-none p-2 mb-4 w-full shadow-md rounded-md text-white bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-600 via-slate-700 to-sky-200"}>
-                        <Typography variant='h5'>BUSD</Typography>
+                        <Stack gap={1} direction={"row"} alignItems={'center'} justifyContent={'center'}>
+                            <BinanceUsd />
+                            <Typography variant='h5'>BUSD</Typography>
+                        </Stack>
                     </div>
                     <Stack direction="column" gap={2} divider={<Divider />}>
                         <div>

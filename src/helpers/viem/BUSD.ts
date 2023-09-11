@@ -1,9 +1,17 @@
-import { Abi, Address, getContract, GetContractReturnType, PublicClient, WalletClient, Account } from 'viem'
+import { Abi, Address, getContract, GetContractReturnType, PublicClient, WalletClient, Account, parseAbi } from 'viem';
+import bigIntLib from "big-integer";
 import { getTestClient } from './client'
 import BUSD from '../../assets/BUSD.json'
 
+const getContractAddress = () => BUSD.networks["80001"].address as Address;
+
+const computeValue = async (value: number) => {
+    const decimals = await getContractObject().read.decimals() as bigint;
+    return BigInt(bigIntLib(10n as bigint).pow(decimals as bigint).multiply(value).toString());
+}
+
 const getContractParameters = () => ({
-    address: BUSD.networks["80001"].address as Address,
+    address: getContractAddress(),
     abi: BUSD.abi as Abi,
     publicClient: getTestClient()
 });
@@ -64,7 +72,7 @@ export async function sendTransfer(account: string, recipient: string, amount: n
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'transfer',
-        args: [recipient, amount],
+        args: [recipient, await computeValue(amount)],
         account: account as unknown as Account
     })
 }
@@ -73,7 +81,7 @@ export async function sendTransferFrom(account: string, from: string, recipient:
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'transferFrom',
-        args: [from, recipient, amount],
+        args: [from, recipient, await computeValue(amount)],
         account: account as unknown as Account
     })
 }
@@ -82,7 +90,7 @@ export async function approve(account: string, spender: string, amount: number):
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'approve',
-        args: [spender, amount],
+        args: [spender, await computeValue(amount)],
         account: account as unknown as Account
     })
 }
@@ -92,7 +100,7 @@ export async function mint(account: string, amount: number): Promise<void> {
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'mint',
-        args: [amount],
+        args: [await computeValue(amount)],
         account: account as unknown as Account
     })
 }
@@ -101,7 +109,7 @@ export async function burn(account: string, amount: number): Promise<void> {
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'burn',
-        args: [amount],
+        args: [await computeValue(amount)],
         account: account as unknown as Account
     })
 }
@@ -125,3 +133,32 @@ export async function renounceOwnership(account: string): Promise<void> {
 }
 
 
+let lastHandledBlock: any;
+export async function fetchContractActions(dataHandler: (data: any[]) => void, fromBlock: BigInt|null): Promise<boolean> {
+    const BLOCK_STEP = BigInt(1000);
+
+    return new Promise(async (resolve) => {
+        const lastBlockNumber = fromBlock !== null ? fromBlock : await getTestClient().getBlockNumber();
+        const firstBlockNumber = lastHandledBlock ? lastHandledBlock : 22069112n;
+        let currentBlockNumber = lastBlockNumber;
+
+        lastHandledBlock = lastBlockNumber;
+        
+        while (currentBlockNumber >= firstBlockNumber) {
+            const logsTransfers = await getTestClient().getLogs({
+                address: getContractAddress(),
+                events: parseAbi([ 
+                    'event Approval(address indexed owner, address indexed spender, uint256 value)',
+                    'event Transfer(address indexed from, address indexed to, uint256 value)',
+                ]),
+                fromBlock: BigInt(bigIntLib(currentBlockNumber as bigint).subtract(BLOCK_STEP).toString()),
+                toBlock: BigInt(currentBlockNumber.toString()),
+            })
+            currentBlockNumber = BigInt(bigIntLib(currentBlockNumber as bigint).subtract(BLOCK_STEP).toString());
+            dataHandler(logsTransfers);
+        }
+
+
+        resolve(true);
+    });
+}

@@ -3,7 +3,7 @@ import  { PropsWithChildren, createContext, useState } from "react";
 export type AppState = {
   address: string|null,
   chainId: string,
-  owner: string
+  owner: string,
 }
 export type AppStateContextType = {
   appData: AppState,

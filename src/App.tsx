@@ -13,6 +13,7 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 
 import './App.css';
+import HistoricalDataPanels from './components/HistoricalDataPanels';
 
 type RefreshableComponent = {
   refresh: () => Promise<void>
@@ -32,16 +33,17 @@ function App() {
   }, []);
 
   return (
-    <div className='mb-16 pt-16'>
+    <div className='mb-16 pt-16 box-border'>
       <AppStateProvider>
         <RestrictedNetwork>
           <HeaderBar refresh={refresh} />
           <ConnectToWallet />
-          <div className="flex flex-row gap-2">
-            <div className='w-1/2'>
+          <HistoricalDataPanels />
+          <div className="flex flex-row gap-2 box-border">
+            <div className='w-1/2 overflow-hidden box-border'>
               <BUSDManager ref={BUSDRef} />
             </div>
-            <div className='w-1/2'>
+            <div className='w-1/2 overflow-hidden box-border'>
               <MATICManager ref={MATICRef} />
             </div>
           </div>

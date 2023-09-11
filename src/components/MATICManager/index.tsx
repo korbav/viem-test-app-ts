@@ -3,6 +3,7 @@ import { getBalanceValue, sendTransfer } from "../../helpers/viem/MATIC";
 import { AppStateContext } from '../../context/AppStateContext';
 import { Box, Button, Input, Stack, Typography, CircularProgress, Divider } from '@mui/material';
 import { genericErrorAlert, genericSuccessAlert } from '../../helpers/viem/notifications';
+import { Polygon } from 'cryptocons';
 
 export default forwardRef((_, ref) => {
     const { appData } = useContext(AppStateContext);
@@ -46,7 +47,10 @@ export default forwardRef((_, ref) => {
             { !balanceValue ? (<CircularProgress />) : (
                 <div className={"p-4 mx-4 shadow-md rounded-md bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-neutral-100 via-zinc-100 to-neutral-100"} >
                     <div className={"select-none p-2 mb-4 w-full shadow-md rounded-md text-white bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-600 via-slate-700 to-sky-200"}>
-                        <Typography variant='h5'>MATIC</Typography>
+                    <Stack gap={1} direction={"row"} alignItems={'center'} justifyContent={'center'}>
+                            <Polygon />
+                            <Typography variant='h5'>MATIC</Typography>
+                        </Stack>
                     </div>
                     <Stack direction="column" gap={2} divider={<Divider />}>
                         <div>
