@@ -94,6 +94,7 @@ export default function HistoricalDataPanels() {
                 return ["Transfer", "Approval"].includes(action.eventName) && (
                     (action.args.owner || "").toLowerCase() === appData.address!.toLowerCase()
                     || (action.args.from || "").toLowerCase() === appData.address!.toLowerCase()
+                    || (action.args.to || "").toLowerCase() === appData.address!.toLowerCase()
                 )
             }).slice(-1 * lastUserActionsCount);
         }
