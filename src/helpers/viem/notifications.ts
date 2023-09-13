@@ -6,6 +6,7 @@ export const genericErrorAlert = (e: Error) => {
         autoClose: 1000,
         pauseOnHover: false,
         draggable: false,
+        pauseOnFocusLoss: false
      });
     console.log(e);
 }
@@ -16,6 +17,7 @@ export const genericSuccessAlert = () => {
         autoClose: 1000,
         pauseOnHover: false,
         draggable: false,
+        pauseOnFocusLoss: false
     });
 }
 export const infoAlert = (infoMessage: string) => {
@@ -25,6 +27,7 @@ export const infoAlert = (infoMessage: string) => {
         closeOnClick: true,
         pauseOnHover: false,
         draggable: false,
-        hideProgressBar: true
+        hideProgressBar: true,
+        pauseOnFocusLoss: false
     });
 }

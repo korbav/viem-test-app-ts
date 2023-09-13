@@ -1,120 +1,52 @@
-import { Stack, } from "@mui/material";
+import { Card, Stack, } from "@mui/material";
+import { useQuery } from "react-query";
 import ActionsView from "../ActionsView";
-import { useContext, useCallback, useRef, useEffect, useState } from "react";
+import { useContext } from "react";
 import { AppStateContext } from "../../context/AppStateContext";
-import { fetchContractActions } from "../../helpers/viem/BUSD";
+import DailyVolumes from "../DailyVolumes"
+import config from "../../assets/config.json";
+
+const { APIAddress, autoRefreshThrottleTime: refetchInterval } = config;
 
 const lastUserActionsCount = 10;
 const allUsersActionsCount = 10;
 
-
-const readCache = (): any[] => window.localStorage.getItem("actions") != null ? JSON.parse(window.localStorage.getItem("actions")!.toString()) as any[] : [];
-
-const getFirstCachedBlock = (): BigInt|null => {
-    const cache = readCache();
-    if(cache.length > 0) {
-        return cache[0].blockNumber;
-    }
-    return null;
-}
-
-const updateCache = (actions: any[]) => window.localStorage.setItem("actions", JSON.stringify(actions, (_, v) => typeof v === 'bigint' ? v.toString() : v));
-
-const insertAction = (actionsSink: any[], d: any) => {
-    if (d && !actionsSink.find(a => a.transactionHash === d.transactionHash)) { // Avoid duplicates
-        if(actionsSink.length === 0) {
-            actionsSink.push(d)
-        } else {
-            let i = actionsSink.length - 1;
-            while((d.blockNumber <= actionsSink[i].blockNumber || (d.blockNumber === actionsSink[i].blockNumber && d.transactionIndex < actionsSink[i].transactionIndex))  && i > 0) {
-                i--;
-            }
-            actionsSink.splice(i, 0, d);
-        }
-        updateCache(actionsSink);
-    }
-}
-
 export default function HistoricalDataPanels() {
     const { appData } = useContext(AppStateContext);
-    const [actionsSink] = useState<any[]>(readCache());
-    const [actionsUpdated, setActionsUpdated] = useState<number>(0);
-    const [isChainHistoricalDataReady, setIsChainHistoricalDataReady] = useState<boolean>(false);
-    const fetchActionsTimerRef = useRef<any>();
 
+    const { data: userOperationsData } = useQuery(`userOperationsData${appData.address}`, () =>
+        fetch(`${APIAddress}/operations/${appData.address}`).then(res => res.json()), { refetchInterval, enabled: appData.address !== null }
+    )
 
-    useEffect(() => {
-        if (appData.address) {
-            clearInterval(fetchActionsTimerRef.current);
-            const fromBlock = getFirstCachedBlock();
-            fetchContractActions((gotActions: any[]) => {
-                gotActions.forEach((d) => {
-                    insertAction(actionsSink, d);
-                    setActionsUpdated(Date.now())
+    const { data: allUsersOperationsData } = useQuery(`operations${appData.address}`, () =>
+        fetch(`${APIAddress}/operations/`).then(res => res.json()), { refetchInterval, enabled: appData.address != null }
+    )
+
+    const { data: allowancesData } = useQuery(`allowances${appData.address}`, () =>
+        fetch(`${APIAddress}/allowances/${appData.address}`).then((res) => {
+            return new Promise((resolve) => {
+                res.json().then((data) => {
+                    resolve(!data || data.length === 0 ? data : data[0].spenders.map((s: any) => ({ user: s.spender, value: s.value })))
                 })
-            }, fromBlock).then(() => setIsChainHistoricalDataReady(true));
+            });
+            
+        }), { refetchInterval, enabled: appData.address != null }
+    )
 
-            clearInterval(fetchActionsTimerRef.current)
-            fetchActionsTimerRef.current = setInterval(async () => {
-                await fetchContractActions((gotActions: any[]) => {
-                    gotActions.forEach((d) => {
-                        insertAction(actionsSink, d);
-                        setActionsUpdated(Date.now())
-                    })
-                }, null);
-            }, 5000)
-        }
-
-        return () => clearInterval(fetchActionsTimerRef.current)
-    }, [appData.address])
-    
-    const allowances = useCallback(() => {
-        if (appData.address) {
-            const userAllowances: Record<string, BigInt> = {};
-
-            (actionsSink)
-                .filter((a: any) => a.eventName === "Approval" && a.args.owner.toLowerCase() === appData.address!.toLowerCase())
-                .reduceRight((_, action) => {
-                    if (!userAllowances.hasOwnProperty(action.args.spender)) {
-                        userAllowances[action.args.spender] = action.args.value;
-                    }
-                }, null);
-
-            return Object.keys(userAllowances).map(k => ({
-                user: k,
-                value: userAllowances[k]
-            }));
-        }
-        return null;
-    }, [appData.address, actionsSink, actionsUpdated])
-
-    const userActions = useCallback(() => {
-        if (appData.address) {
-            return actionsSink.filter((action) => {
-                return ["Transfer", "Approval"].includes(action.eventName) && (
-                    (action.args.owner || "").toLowerCase() === appData.address!.toLowerCase()
-                    || (action.args.from || "").toLowerCase() === appData.address!.toLowerCase()
-                    || (action.args.to || "").toLowerCase() === appData.address!.toLowerCase()
-                )
-            }).slice(-1 * lastUserActionsCount);
-        }
-        return null;
-    }, [appData.address, actionsSink, actionsUpdated])
-
-    const allUsersActions = useCallback(() => {
-        if (appData.address) {
-            return actionsSink.filter((action) => {
-                return ["Transfer", "Approval"].includes(action.eventName)
-            }).slice(-1 * lastUserActionsCount);
-        }
-        return null;
-    }, [appData.address, actionsSink, actionsUpdated])
+    const { data: volumesData } = useQuery(`dailyvolumes`, () =>
+        fetch(`${APIAddress}/dailyvolumes`).then(res => res.json()), { refetchInterval, enabled: appData.address != null }
+    )
 
     return appData.address ? (
-        <Stack direction="row" className="p-4 mb-4 w-full box-border" gap={2}>
-            <ActionsView count={lastUserActionsCount} actions={userActions()} title={`${lastUserActionsCount} last user actions`} />
-            <ActionsView count={allUsersActionsCount} actions={allUsersActions()} title={`${allUsersActionsCount} last actions (all users)`} />
-            <ActionsView count={NaN} dataReady={isChainHistoricalDataReady} actions={allowances()} title={`user allowances`} />
+        <Stack direction="column" className="w-full" gap={2}>
+            <Stack direction="row" className="p-4 w-full" gap={2}>
+                <ActionsView mode="operations" count={lastUserActionsCount} actions={userOperationsData} title={`${lastUserActionsCount} last user actions`} />
+                <ActionsView mode="operations" count={allUsersActionsCount} actions={allUsersOperationsData} title={`${allUsersActionsCount} last actions (all users)`} />
+                <ActionsView mode="allowances" count={NaN} dataReady={Array.isArray(allowancesData) && allowancesData.length > 0} actions={allowancesData ? allowancesData as any[] : []} title={`user allowances`} />
+            </Stack>
+            <Card className="p-4 mx-4 mb-4 overflow-hidden">
+                <DailyVolumes volumes={volumesData} />
+            </Card>
         </Stack>
     ) : null;
 }

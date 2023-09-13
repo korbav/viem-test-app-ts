@@ -81,7 +81,7 @@ export default function () {
   }
 
   return (
-    <>
+    <div className="flex justify-center">
       <Status />
       { !appData.address && (
         <Button variant="contained" size="large" onClick={handleClick} disabled={null !== appData.address}>
@@ -93,7 +93,7 @@ export default function () {
             </Stack>
         </Button>
       )}
-    </>
+    </div>
   );
 }
 

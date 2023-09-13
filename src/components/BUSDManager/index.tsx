@@ -4,8 +4,7 @@ import WarningIcon from "@mui/icons-material/WarningRounded";
 import { BinanceUsd } from 'cryptocons'
 import { 
     getBUSDContractData, 
-    checkSpenderAllowance, 
-    getBalanceValue, 
+    checkSpenderAllowance,
     sendTransfer,
     sendTransferFrom, 
     mint, 
@@ -19,7 +18,8 @@ import {
 import { AppStateContext } from '../../context/AppStateContext';
 import { toast } from 'react-toastify';
 import { genericErrorAlert, genericSuccessAlert } from '../../helpers/viem/notifications';
-
+import { useQuery } from 'react-query';
+import config from "../../assets/config.json"
 
 
 
@@ -28,7 +28,6 @@ export default forwardRef((_, ref) => {
     const [contractData, setContractData] = useState<ContractDataType>()
     const [spender, setSpender] = useState<string>()
     const [allowanceValue, setAllowanceValue] = useState<string>()
-    const [balanceValue, setBalanceValue] = useState<BigInt>(0n)
     const [mintvalue, setMintvalue] = useState<string>()
     const [burnValue, setBurnValue] = useState<string>()
     
@@ -43,9 +42,13 @@ export default forwardRef((_, ref) => {
 
     const [newOwner, setNewOwner] = useState<string>("")
 
+    const { data: balanceValue, refetch: refetchUserBalance } = useQuery(`userBalancesData${appData.address}`, () =>
+        fetch(`${config.APIAddress}/balances/${appData.address}`).then(res => res.json()), { initialData: "0", enabled: appData.address !== null }
+    )
+
     const triggerRefresh = useCallback(async () => {
         if(appData.address) {
-            getBalanceValue(appData.address).then(value => setBalanceValue(value));
+            refetchUserBalance();
             getBUSDContractData().then(data => setContractData(data));
         }
     }, [appData.address]);
@@ -276,7 +279,7 @@ export default forwardRef((_, ref) => {
                                 <div className='select-none'>
                                     <Stack direction="row" gap={1} alignItems={'center'}>
                                         <WarningIcon fontSize='small' />
-                                        <Typography variant='overline'>YOU ARE NOT THE OWNER</Typography> 
+                                        <Typography variant='overline'>OWNER</Typography> 
                                         <Typography variant='overline'>({appData.owner})</Typography> 
                                     </Stack>
                                 </div>
