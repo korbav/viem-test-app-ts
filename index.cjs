@@ -1,5 +1,5 @@
-const path = require("path");
-const express = require("express");
+import path frm "path";
+import express frm "express";
 const app = express(); // create express app
 
 // add middlewares
