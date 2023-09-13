@@ -1,4 +1,4 @@
 {
-    "APIAddress": "https://34.242.66.113:1234",
+    "APIAddress": "http://localhost:1234",
     "autoRefreshThrottleTime": 120000
 }
