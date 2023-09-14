@@ -1,5 +1,8 @@
-export const formatValue = (value: string, decimals = 18) => {
-    if(!value || value === "0") {
+export const formatValue = (value: string, decimals = 18) => (!value || value === "0") ? "0" : `${(Number(value.slice(0, value.length - decimals))).toLocaleString("en-US")}.${value.slice(-1 * decimals)}`
+
+/*
+export const formatValueOld = (value: string, decimals = 18) => {
+    if (!value || value === "0") {
         return "0";
     }
     let intPart = value.slice(0, value.length - decimals);
@@ -13,3 +16,4 @@ export const formatValue = (value: string, decimals = 18) => {
     }
     return `${groups.reverse().join(",")}.${value.slice(-1 * decimals)}`
 }
+*/

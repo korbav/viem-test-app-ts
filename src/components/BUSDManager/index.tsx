@@ -176,7 +176,7 @@ export default forwardRef((_, ref) => {
                         <div>
                             <Stack direction="row" gap={2}>
                                 <Typography fontWeight={700}>Total Supply</Typography>
-                                <Typography className='text-blue-700'>{contractData.totalSupply.toString()}</Typography>
+                                <Typography className='text-blue-700'>{formatValue(contractData.totalSupply.toString())}</Typography>
                             </Stack>
                         </div>
                         <div>
