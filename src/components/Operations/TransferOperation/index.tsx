@@ -1,4 +1,5 @@
 import { Stack, Typography,  } from "@mui/material";
+import { formatValue } from "../../../helpers/format";
 
 const fontSize = 11;
 
@@ -23,7 +24,7 @@ export default function TransferOperation({ action }: { action: any }) {
             </Stack>
             <Stack direction={"row"} gap={1}>
                 <Typography  className="w-14 text-left" fontSize={fontSize}>Value</Typography>
-                <Typography fontSize={fontSize} className="text-blue-700 overflow-hidden overflow-ellipsis">{action.args.value.toString()}</Typography>
+                <Typography fontSize={fontSize} className="text-blue-700 overflow-hidden overflow-ellipsis">{formatValue(action.args.value.toString())}</Typography>
             </Stack>
         </Stack>
     )

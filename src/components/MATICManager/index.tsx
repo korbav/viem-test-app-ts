@@ -4,6 +4,7 @@ import { AppStateContext } from '../../context/AppStateContext';
 import { Box, Button, Input, Stack, Typography, CircularProgress, Divider } from '@mui/material';
 import { genericErrorAlert, genericSuccessAlert } from '../../helpers/viem/notifications';
 import { Polygon } from 'cryptocons';
+import { formatValue } from '../../helpers/format';
 
 export default forwardRef((_, ref) => {
     const { appData } = useContext(AppStateContext);
@@ -56,7 +57,7 @@ export default forwardRef((_, ref) => {
                         <div>
                             <Stack direction="row" gap={2}>
                                 <Typography fontWeight={700}>Balance</Typography>
-                                <Typography className='text-blue-700'>{balanceValue.toString()}</Typography>
+                                <Typography className='text-blue-700'>{formatValue(balanceValue.toString())}</Typography>
                             </Stack>
                         </div>
                         <div>

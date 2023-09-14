@@ -3,6 +3,7 @@ import 'chart.js/auto';
 import { Chart } from 'react-chartjs-2';
 import { Chart as ChartJS, LineController, LineElement, PointElement, LinearScale, Title } from 'chart.js';
 import bigintLib from "big-integer";
+import { formatValue } from "../../helpers/format";
 
 ChartJS.register(LineController, LineElement, PointElement, LinearScale, Title);
 
@@ -24,12 +25,19 @@ export default function DailyVolumes({ volumes }: { volumes: Array<{ timestamp: 
         display: true,
         text: 'BUSD Daily Transfer Volumes',
       },
+      tooltip: {
+        callbacks: {
+            label: (context: any) => {
+                return formatValue(bigintLib(context.parsed.y).toString());
+            }
+        }
+      }
     },
     scales: {
       y: {
         ticks: {
           callback: function(value: number) {
-            return `${bigintLib(value < 1 ? 0 : value).toString()}`
+            return `${formatValue(bigintLib(value < 1 ? 0 : value).toString())}`
           },
           color: "rgba(30, 50, 150, 0.9)"
         }

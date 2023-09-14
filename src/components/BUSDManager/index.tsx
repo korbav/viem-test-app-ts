@@ -20,6 +20,7 @@ import { toast } from 'react-toastify';
 import { genericErrorAlert, genericSuccessAlert } from '../../helpers/viem/notifications';
 import { useQuery } from 'react-query';
 import config from "../../assets/config.json"
+import { formatValue } from '../../helpers/format';
 
 
 
@@ -181,7 +182,7 @@ export default forwardRef((_, ref) => {
                         <div>
                             <Stack direction="row" gap={2}>
                                 <Typography fontWeight={700}>Balance</Typography>
-                                <Typography className='text-blue-700'>{balanceValue.toString()}</Typography>
+                                <Typography className='text-blue-700'>{formatValue(balanceValue.toString())}</Typography>
                             </Stack>
                         </div>
                         <div>
