@@ -12,7 +12,7 @@ export default function Allowance({ action }: { action: any }) {
             </Stack>
             <Stack direction={"row"} gap={1}>
                 <Typography className="w-14 min-w-14 max-w-14 text-left shrink-0" fontSize={fontSize}>Value</Typography>
-                <Typography fontSize={fontSize} className="text-blue-700 overflow-hidden overflow-ellipsis">{formatValue(BigInt(action.value).toString())}</Typography>
+                <Typography fontSize={fontSize} className="text-blue-700 overflow-hidden overflow-ellipsis" title={formatValue(action.value.toString())}>{formatValue(BigInt(action.value).toString())}</Typography>
             </Stack>
         </Stack>
     )
