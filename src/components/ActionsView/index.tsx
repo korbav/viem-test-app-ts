@@ -20,7 +20,7 @@ export default function ActionsView({ count, title, actions, dataReady, mode }: 
                             </div>
                         ) :
                         (
-                            <Stack divider={(<Divider />)} gap={1} direction={"column-reverse"}>
+                            <Stack divider={(<Divider />)} gap={1}>
                             {
                                 (Number.isNaN(count) ? actions.slice(-1 * count) : actions).map((action, index) => {
                                         return (
