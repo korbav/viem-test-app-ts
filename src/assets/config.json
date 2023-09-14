@@ -1,4 +1,4 @@
 {
-    "APIAddress": "http://34.242.66.113:1234",
+    "APIAddress": "http://ec2-34-242-66-113.eu-west-1.compute.amazonaws.com:1234",
     "autoRefreshThrottleTime": 120000
 }
