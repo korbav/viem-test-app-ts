@@ -2,6 +2,8 @@ import { useCallback, useContext, useState, useEffect, forwardRef, useImperative
 import { Input, Button, Typography, Stack, Box, CircularProgress, Divider } from "@mui/material";
 import WarningIcon from "@mui/icons-material/WarningRounded";
 import { BinanceUsd } from 'cryptocons'
+import { useQuery } from 'react-query';
+import { toast } from 'react-toastify';
 import { 
     getBUSDContractData, 
     checkSpenderAllowance,
@@ -16,12 +18,9 @@ import {
     getOwner
 } from "../../helpers/viem/BUSD";
 import { AppStateContext } from '../../context/AppStateContext';
-import { toast } from 'react-toastify';
 import { genericErrorAlert, genericSuccessAlert } from '../../helpers/viem/notifications';
-import { useQuery } from 'react-query';
 import config from "../../assets/config.json"
 import { formatValue } from '../../helpers/format';
-
 
 
 export default forwardRef((_, ref) => {
@@ -82,7 +81,7 @@ export default forwardRef((_, ref) => {
 
     const triggerSendTransfer = useCallback(() => {
         if(transferRecipient && transferValue) {
-            sendTransfer((appData.address)!, transferRecipient, parseInt(transferValue, 10))
+            sendTransfer((appData.address)!, transferRecipient, BigInt(transferValue))
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);
@@ -92,7 +91,7 @@ export default forwardRef((_, ref) => {
 
     const triggerSendTransferFrom = useCallback(() => {
         if(transferFromRecipient && transferFromValue && transferFromAddress) {
-            sendTransferFrom(appData.address!, transferFromAddress, transferFromRecipient, parseInt(transferFromValue, 10))
+            sendTransferFrom(appData.address!, transferFromAddress, transferFromRecipient, BigInt(transferFromValue))
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);
@@ -102,7 +101,7 @@ export default forwardRef((_, ref) => {
 
     const triggerApprove = useCallback(() => {
         if(approveSpenderAddress && approveSpenderAmount) {
-            approve(appData.address!, approveSpenderAddress, parseInt(approveSpenderAmount, 10))
+            approve(appData.address!, approveSpenderAddress, BigInt(approveSpenderAmount))
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);
@@ -112,7 +111,7 @@ export default forwardRef((_, ref) => {
 
     const triggerMint = useCallback(() => {
         if(mintvalue) {
-            mint(appData.address!, parseInt(mintvalue, 10))
+            mint(appData.address!, BigInt(mintvalue))
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);
@@ -122,7 +121,7 @@ export default forwardRef((_, ref) => {
 
     const triggerBurn = useCallback(() => {
         if(burnValue) {
-            burn(appData.address!, parseInt(burnValue, 10))
+            burn(appData.address!, BigInt(burnValue))
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);

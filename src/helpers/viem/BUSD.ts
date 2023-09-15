@@ -5,7 +5,7 @@ import BUSD from '../../assets/BUSD.json'
 
 const getContractAddress = () => BUSD.networks["80001"].address as Address;
 
-const computeValue = async (value: number) => {
+const computeValue = async (value: bigint) => {
     const decimals = await getContractObject().read.decimals() as bigint;
     return BigInt(bigIntLib(10n as bigint).pow(decimals as bigint).multiply(value).toString());
 }
@@ -68,7 +68,7 @@ export async function getOwner(): Promise<any> {
     return owner;
 }
 
-export async function sendTransfer(account: string, recipient: string, amount: number): Promise<void> {
+export async function sendTransfer(account: string, recipient: string, amount: bigint): Promise<void> {
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'transfer',
@@ -77,7 +77,7 @@ export async function sendTransfer(account: string, recipient: string, amount: n
     })
 }
 
-export async function sendTransferFrom(account: string, from: string, recipient: string, amount: number): Promise<void> {
+export async function sendTransferFrom(account: string, from: string, recipient: string, amount: bigint): Promise<void> {
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'transferFrom',
@@ -86,7 +86,7 @@ export async function sendTransferFrom(account: string, from: string, recipient:
     })
 }
 
-export async function approve(account: string, spender: string, amount: number): Promise<void> {
+export async function approve(account: string, spender: string, amount: bigint): Promise<void> {
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'approve',
@@ -96,7 +96,7 @@ export async function approve(account: string, spender: string, amount: number):
 }
 
 
-export async function mint(account: string, amount: number): Promise<void> {
+export async function mint(account: string, amount: bigint): Promise<void> {
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'mint',
@@ -105,7 +105,7 @@ export async function mint(account: string, amount: number): Promise<void> {
     })
 }
 
-export async function burn(account: string, amount: number): Promise<void> {
+export async function burn(account: string, amount: bigint): Promise<void> {
     await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'burn',
