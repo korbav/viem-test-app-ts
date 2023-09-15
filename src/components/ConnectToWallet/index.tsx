@@ -9,7 +9,7 @@ import { getOwner } from "../../helpers/viem/BUSD";
 
 export default function () {
   const { appData, setAppData } = useContext(AppStateContext);
-  const[ connectedToWallet, setIsConnectedToWallet ] = useState(false);
+  const [connectedToWallet, setIsConnectedToWallet] = useState(false);
 
   const handleConfigurationChanged = () => {
     toast('Configuration has changed, Auto updating...');
@@ -19,7 +19,7 @@ export default function () {
     try {
       const address = accounts[0];
       const owner = (await getOwner()).toString();
-      if(connectedToWallet && appData.address && address.toString().toLowerCase() !== appData.address.toString().toLowerCase()) {
+      if (connectedToWallet && appData.address && address.toString().toLowerCase() !== appData.address.toString().toLowerCase()) {
         setAppData({
           ...appData,
           address,
@@ -27,14 +27,14 @@ export default function () {
         });
         handleConfigurationChanged()
       }
-    } catch(e) {
+    } catch (e) {
       console.log(e)
     }
   }, [appData.address]);
 
   const handleChainChanged = useCallback(async (chainId: string) => {
     try {
-      if(chainId.toString().toLowerCase() !== appData.chainId.toString().toLowerCase()) {
+      if (chainId.toString().toLowerCase() !== appData.chainId.toString().toLowerCase()) {
         const accounts = await getTestClient().requestAddresses();
         const address = accounts[0];
         const owner = (await getOwner()).toString();
@@ -43,25 +43,30 @@ export default function () {
           address,
           chainId,
           owner
-        });
+        })
+      } else {
+        setAppData({
+          ...appData,
+          chainId,
+        })
         handleConfigurationChanged();
       }
-    } catch(e) {
+    } catch (e) {
       console.log(e)
     }
   }, [appData.chainId]);
 
   useEffect(() => {
-      window.ethereum!.removeListener('chainChanged', handleChainChanged)
-      window.ethereum!.on('chainChanged', handleChainChanged);
-  }, [appData.address])
-  
-  useEffect(() => {
-      window.ethereum!.removeListener('accountsChanged', handleAccountsChanged)
-      window.ethereum!.on('accountsChanged', handleAccountsChanged);
+    window.ethereum!.removeListener('chainChanged', handleChainChanged)
+    window.ethereum!.on('chainChanged', handleChainChanged);
   }, [appData.address])
 
-  
+  useEffect(() => {
+    window.ethereum!.removeListener('accountsChanged', handleAccountsChanged)
+    window.ethereum!.on('accountsChanged', handleAccountsChanged);
+  }, [appData.address])
+
+
   async function handleClick() {
     try {
       const accounts = await getTestClient().requestAddresses();
@@ -79,14 +84,14 @@ export default function () {
   return (
     <div className="flex justify-center">
       <Status />
-      { !appData.address && (
+      {!appData.address && (
         <Button variant="contained" size="large" onClick={handleClick} disabled={null !== appData.address}>
-            <Stack direction="row" gap={1}>
-                <ConnectIcon />
-                <Typography variant="body1">
-                  Connect To Wallet
-                </Typography>
-            </Stack>
+          <Stack direction="row" gap={1}>
+            <ConnectIcon />
+            <Typography variant="body1">
+              Connect To Wallet
+            </Typography>
+          </Stack>
         </Button>
       )}
     </div>

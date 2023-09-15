@@ -47,7 +47,6 @@ export async function checkSpenderAllowance(owner: string, spender: string): Pro
 
     return allowance;
 }
-
 export async function getBalanceValue(owner: string): Promise<BigInt> {
     let balanceOf: BigInt = 0n;
     try {
