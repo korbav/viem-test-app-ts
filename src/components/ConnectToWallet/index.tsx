@@ -52,17 +52,13 @@ export default function () {
   }, [appData.chainId]);
 
   useEffect(() => {
-    if(connectedToWallet) {
       window.ethereum!.removeListener('chainChanged', handleChainChanged)
       window.ethereum!.on('chainChanged', handleChainChanged);
-    }
   }, [appData.address])
   
   useEffect(() => {
-    if(connectedToWallet) {
       window.ethereum!.removeListener('accountsChanged', handleAccountsChanged)
       window.ethereum!.on('accountsChanged', handleAccountsChanged);
-    }
   }, [appData.address])
 
   
