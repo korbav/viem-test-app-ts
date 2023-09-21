@@ -203,7 +203,7 @@ export default forwardRef(({ waitForTransactionFn }: {waitForTransactionFn: any}
                                         <div>
                                             <Stack direction="row" gap={2}>
                                                 <Typography>Allowance</Typography>
-                                                <Typography className='text-blue-700'>{allowanceValue.toString()}</Typography>
+                                                <Typography className='text-blue-700'>{formatValue(allowanceValue.toString())}</Typography>
                                             </Stack>
                                         </div>
                                     )}
