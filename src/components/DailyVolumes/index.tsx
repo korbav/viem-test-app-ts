@@ -37,7 +37,16 @@ export default function DailyVolumes({ volumes }: { volumes: Array<{ timestamp: 
       y: {
         ticks: {
           callback: function(value: number) {
-            return `${formatValue(bigintLib(value < 1 ? 0 : value).toString())}`
+            const intValue = value < 1 ? 0 : Number(bigintLib(value).divide(10 ** 18).toString());
+            if(intValue < 1000) {
+              return `${intValue}`
+            } else if(intValue < 1_000_000) {
+              return `${Math.round(intValue / 1000)}K`
+            } else if(intValue < 1_000_000_000) {
+              return `${Math.round(intValue / 1_000_000)}M`
+            } else {
+              return `${Math.round(intValue / 1_000_000_000)}B`
+            }
           },
           color: "rgba(30, 50, 150, 0.9)"
         }
@@ -52,7 +61,8 @@ export default function DailyVolumes({ volumes }: { volumes: Array<{ timestamp: 
         labels: volumes.map(v => (new Date(v.timestamp).toLocaleDateString("fr", { dateStyle: "short" }))),
         datasets: [{
             data: volumes.map(v => {
-              return bigintLib(v.value).toJSNumber();
+              //  return bigintLib(v.value).toJSNumber()
+              return bigintLib(v.value).toString();
             }),
             backgroundColor: "rgba(191, 219, 254, 0.9)"
         }]
