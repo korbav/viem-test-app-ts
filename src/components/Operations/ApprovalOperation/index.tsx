@@ -5,7 +5,7 @@ const fontSize = 11;
 
 export default function ApprovalOperation({ action }: { action: any }) {
     return (
-        <Stack direction={"column"} gap={0.1} fontSize={10} className="animate-brightness">
+        <Stack direction={"column"} gap={0.1} fontSize={10}>
             <Stack direction={"row"} gap={1}>
                 <Typography className="w-14 min-w-14 max-w-14 text-lef shrink-0" fontWeight={700} fontSize={fontSize}>Approval</Typography>
                 <Typography fontSize={fontSize} className="text-blue-700 overflow-hidden overflow-ellipsis">

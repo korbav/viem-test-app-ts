@@ -47,3 +47,7 @@ body {
 legend {
   text-align: left;
 }
+
+:root {
+  --toastify-color-success: #0C8BD1;
+}

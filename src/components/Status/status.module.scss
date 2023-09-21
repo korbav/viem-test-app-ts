@@ -1,0 +1,18 @@
+.animated {
+  background-size: 200% 200%;
+  background-image: 
+  repeating-linear-gradient(
+    -45deg, 
+    rgb(2, 6, 23), 
+    rgb(2, 6, 23),  1rem,
+    rgb(2, 6, 50) 1rem,
+    rgb(2, 6, 50) 2rem
+  );
+  animation: barberpole 10s linear infinite;
+}
+  
+@keyframes barberpole {
+    100% {
+        background-position: 100% 100%;
+    }
+}

@@ -8,14 +8,15 @@ export default {
     extend: {
       keyframes: {
         brightness: {
-          '0%': { background:  'rgba(200,230,255,0.5)', filter: 'brightness(1) saturate(0) opacity(0)' },
-          '30%': { background: 'rgba(200,230,255,0)',filter: 'brightness(10) saturate(100%) opacity(100)' },
-          '60%': { background: 'rgba(200,230,255,0.5)',filter: 'brightness(1) saturate(100%) opacity(100)' },
-          '100%': { background:'rgba(200,230,255,0)',filter: 'brightness(1) saturate(100%) opacity(100)' },
+          '0%': {   background:  'rgba(255,255,255,1)' },
+          '10%': {  background:  'rgba(210,240,255,1)' },
+          '20%': {  background:  'rgba(255,255,255,1)' },
+          '30%': {  background:  'rgba(210,240,255,1)' },
+          '60%, 100%': { background:  'rgba(255,255,255,1)' },
         },
       },
       animation: {
-        'brightness': 'brightness 0.7s ease-in forwards',
+        'brightness': 'brightness 0.9s 3 linear forwards',
       },
     },
   },

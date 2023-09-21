@@ -22,7 +22,10 @@ export default forwardRef((_, ref) => {
     useImperativeHandle(ref, () => ({
         refresh: async () => {
             await triggerRefresh();
-        }
+        },
+        handleNewAction: function() {
+            triggerRefresh().then();
+        },
     }));
 
     const triggerSendTransfer = useCallback(() => {

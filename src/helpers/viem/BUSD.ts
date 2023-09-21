@@ -67,68 +67,75 @@ export async function getOwner(): Promise<any> {
     return owner;
 }
 
-export async function sendTransfer(account: string, recipient: string, amount: bigint): Promise<void> {
-    await getTestClient().writeContract({
+export async function sendTransfer(account: string, recipient: string, amount: bigint, waitForTransactionFn: any): Promise<void> {
+    const hash = (await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'transfer',
         args: [recipient, await computeValue(amount)],
         account: account as unknown as Account
-    })
+    }))
+    waitForTransactionFn && waitForTransactionFn(hash);
 }
 
-export async function sendTransferFrom(account: string, from: string, recipient: string, amount: bigint): Promise<void> {
-    await getTestClient().writeContract({
+export async function sendTransferFrom(account: string, from: string, recipient: string, amount: bigint, waitForTransactionFn: any): Promise<void> {
+    const hash = await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'transferFrom',
         args: [from, recipient, await computeValue(amount)],
         account: account as unknown as Account
     })
+    waitForTransactionFn && waitForTransactionFn(hash);
 }
 
-export async function approve(account: string, spender: string, amount: bigint): Promise<void> {
-    await getTestClient().writeContract({
+export async function approve(account: string, spender: string, amount: bigint, waitForTransactionFn: any): Promise<void> {
+    const hash = await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'approve',
         args: [spender, await computeValue(amount)],
         account: account as unknown as Account
     })
+    waitForTransactionFn && waitForTransactionFn(hash);
 }
 
 
-export async function mint(account: string, amount: bigint): Promise<void> {
-    await getTestClient().writeContract({
+export async function mint(account: string, amount: bigint, waitForTransactionFn: any): Promise<void> {
+    const hash = await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'mint',
         args: [await computeValue(amount)],
         account: account as unknown as Account
     })
+    waitForTransactionFn && waitForTransactionFn(hash);
 }
 
-export async function burn(account: string, amount: bigint): Promise<void> {
-    await getTestClient().writeContract({
+export async function burn(account: string, amount: bigint, waitForTransactionFn: any): Promise<void> {
+    const hash = await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'burn',
         args: [await computeValue(amount)],
         account: account as unknown as Account
     })
+    waitForTransactionFn && waitForTransactionFn(hash);
 }
 
-export async function transferOwnership(account: string, newOwner: string): Promise<void> {
-    await getTestClient().writeContract({
+export async function transferOwnership(account: string, newOwner: string, waitForTransactionFn: any): Promise<void> {
+    const hash = await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'transferOwnership',
         args: [account, newOwner],
         account: account as unknown as Account
     })
+    waitForTransactionFn && waitForTransactionFn(hash);
 }
 
-export async function renounceOwnership(account: string): Promise<void> {
-    await getTestClient().writeContract({
+export async function renounceOwnership(account: string, waitForTransactionFn: any): Promise<void> {
+    const hash = await getTestClient().writeContract({
         ...getContractParameters(),
         functionName: 'renounceOwnership',
         args: [account],
         account: account as unknown as Account
     })
+    waitForTransactionFn && waitForTransactionFn(hash);
 }
 
 

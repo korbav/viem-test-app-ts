@@ -4,8 +4,8 @@ import WarningIcon from "@mui/icons-material/WarningRounded";
 import { BinanceUsd } from 'cryptocons'
 import { useQuery } from 'react-query';
 import { toast } from 'react-toastify';
+import bigIntLib from "big-integer";
 import { 
-    getBUSDContractData, 
     checkSpenderAllowance,
     sendTransfer,
     sendTransferFrom, 
@@ -14,7 +14,6 @@ import {
     approve, 
     transferOwnership, 
     renounceOwnership,
-    ContractDataType,
     getOwner
 } from "../../helpers/viem/BUSD";
 import { AppStateContext } from '../../context/AppStateContext';
@@ -23,9 +22,8 @@ import config from "../../assets/config.json"
 import { formatValue } from '../../helpers/format';
 
 
-export default forwardRef((_, ref) => {
+export default forwardRef(({ waitForTransactionFn }: {waitForTransactionFn: any}, ref) => {
     const { appData, setAppData } = useContext(AppStateContext);
-    const [contractData, setContractData] = useState<ContractDataType>()
     const [spender, setSpender] = useState<string>()
     const [allowanceValue, setAllowanceValue] = useState<string>()
     const [mintvalue, setMintvalue] = useState<string>()
@@ -46,17 +44,24 @@ export default forwardRef((_, ref) => {
         fetch(`${config.APIAddress}/balances/${appData.address}`).then(res => res.json()), { initialData: "0", enabled: appData.address !== null }
     )
 
+    const { data: totalSupplyValue, refetch: refetchTotalSupplyValue } = useQuery(`totalSupply${appData.address}`, () =>
+        fetch(`${config.APIAddress}/totalsupply`).then(res => res.json()), { initialData: "0", enabled: appData.address !== null }
+    )
+
     const triggerRefresh = useCallback(async () => {
         if(appData.address) {
             refetchUserBalance();
-            getBUSDContractData().then(data => setContractData(data));
+            refetchTotalSupplyValue();
         }
     }, [appData.address]);
 
     useImperativeHandle(ref, () => ({
         refresh: async () => {
            await triggerRefresh();
-       }
+       },
+       handleNewAction: function() {
+            triggerRefresh().then();
+       },
     }));
 
     useEffect(() => {
@@ -81,7 +86,7 @@ export default forwardRef((_, ref) => {
 
     const triggerSendTransfer = useCallback(() => {
         if(transferRecipient && transferValue) {
-            sendTransfer((appData.address)!, transferRecipient, BigInt(transferValue))
+            sendTransfer((appData.address)!, transferRecipient, BigInt(transferValue), waitForTransactionFn)
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);
@@ -91,7 +96,7 @@ export default forwardRef((_, ref) => {
 
     const triggerSendTransferFrom = useCallback(() => {
         if(transferFromRecipient && transferFromValue && transferFromAddress) {
-            sendTransferFrom(appData.address!, transferFromAddress, transferFromRecipient, BigInt(transferFromValue))
+            sendTransferFrom(appData.address!, transferFromAddress, transferFromRecipient, BigInt(transferFromValue), waitForTransactionFn)
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);
@@ -101,7 +106,7 @@ export default forwardRef((_, ref) => {
 
     const triggerApprove = useCallback(() => {
         if(approveSpenderAddress && approveSpenderAmount) {
-            approve(appData.address!, approveSpenderAddress, BigInt(approveSpenderAmount))
+            approve(appData.address!, approveSpenderAddress, BigInt(approveSpenderAmount), waitForTransactionFn)
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);
@@ -111,7 +116,7 @@ export default forwardRef((_, ref) => {
 
     const triggerMint = useCallback(() => {
         if(mintvalue) {
-            mint(appData.address!, BigInt(mintvalue))
+            mint(appData.address!, BigInt(mintvalue), waitForTransactionFn)
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);
@@ -121,7 +126,7 @@ export default forwardRef((_, ref) => {
 
     const triggerBurn = useCallback(() => {
         if(burnValue) {
-            burn(appData.address!, BigInt(burnValue))
+            burn(appData.address!, BigInt(burnValue), waitForTransactionFn)
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);
@@ -139,7 +144,7 @@ export default forwardRef((_, ref) => {
 
     const triggerTransferOwnerShip = useCallback(() => {
         if(checkIsOwner()) {
-            transferOwnership(appData.address!, newOwner)
+            transferOwnership(appData.address!, newOwner, waitForTransactionFn)
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);
@@ -151,7 +156,7 @@ export default forwardRef((_, ref) => {
 
     const triggerRenounceOwnerShip = useCallback(() => {
         if(checkIsOwner()) {
-            renounceOwnership(appData.address!)
+            renounceOwnership(appData.address!, waitForTransactionFn)
                 .then(() => genericSuccessAlert())
                 .catch((e) => {
                     genericErrorAlert(e);
@@ -163,7 +168,7 @@ export default forwardRef((_, ref) => {
 
     return !appData.address? null : (
         <>
-            { !contractData ? (<CircularProgress />) : (
+            { !totalSupplyValue ? (<CircularProgress />) : (
                 <div className={"p-4 mx-4 shadow-md rounded-md bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-neutral-100 via-zinc-100 to-neutral-100"} >
                     <div className={"select-none p-2 mb-4 w-full shadow-md rounded-md text-white bg-[conic-gradient(at_top_left,_var(--tw-gradient-stops))] from-slate-600 via-slate-700 to-sky-200"}>
                         <Stack gap={1} direction={"row"} alignItems={'center'} justifyContent={'center'}>
@@ -175,7 +180,7 @@ export default forwardRef((_, ref) => {
                         <div>
                             <Stack direction="row" gap={2}>
                                 <Typography fontWeight={700}>Total Supply</Typography>
-                                <Typography className='text-blue-700'>{formatValue(contractData.totalSupply.toString())}</Typography>
+                                <Typography className='text-blue-700'>{formatValue(bigIntLib(totalSupplyValue).toString())}</Typography>
                             </Stack>
                         </div>
                         <div>

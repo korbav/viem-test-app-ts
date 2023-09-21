@@ -1,4 +1,5 @@
 {
-    "APIAddress": "http://ec2-34-242-66-113.eu-west-1.compute.amazonaws.com:1234",
+    "APIAddress": "http://127.0.0.1:1234",
+    "WebSocketServerURL": "ws://127.0.0.1:8080/",
     "autoRefreshThrottleTime": 120000
 }

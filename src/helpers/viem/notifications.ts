@@ -11,8 +11,8 @@ export const genericErrorAlert = (e: Error) => {
     console.log(e);
 }
 
-export const genericSuccessAlert = () => {
-    toast("Operation succeeded.", { 
+export const genericSuccessAlert = (successMessage: string = "Operation succeeded.") => {
+    toast(successMessage, { 
         type: "success",
         autoClose: 1000,
         pauseOnHover: false,

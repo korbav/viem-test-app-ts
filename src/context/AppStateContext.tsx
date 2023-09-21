@@ -7,7 +7,9 @@ export type AppState = {
 }
 export type AppStateContextType = {
   appData: AppState,
-  setAppData: React.Dispatch<React.SetStateAction<AppState>>
+  setAppData: React.Dispatch<React.SetStateAction<AppState>>,
+  waitingForTransaction: boolean,
+  setWaitingForTransaction: React.Dispatch<React.SetStateAction<boolean>>,
 }
 
 const intialState: AppState = {
@@ -18,7 +20,9 @@ const intialState: AppState = {
 
 export const AppStateContext = createContext<AppStateContextType>({
   appData: intialState,
-  setAppData: () => null
+  setAppData: () => null,
+  waitingForTransaction: false,
+  setWaitingForTransaction: () => null
 });
 
 export function AppStateProvider({ children }: PropsWithChildren ) {
@@ -28,8 +32,10 @@ export function AppStateProvider({ children }: PropsWithChildren ) {
     owner: ""
   });
 
+  const [waitingForTransaction, setWaitingForTransaction] = useState<boolean>(false);
+
   return (
-    <AppStateContext.Provider value={{ appData, setAppData }}>
+    <AppStateContext.Provider value={{ appData, setAppData, waitingForTransaction, setWaitingForTransaction }}>
       {children}
     </AppStateContext.Provider>
   );
