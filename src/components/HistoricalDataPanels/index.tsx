@@ -2,6 +2,7 @@ import { Card, Stack, } from "@mui/material";
 import { useContext, useImperativeHandle, forwardRef } from "react";
 import { useQuery } from "react-query";
 import bigIntLib from "big-integer";
+import moment from "moment";
 import ActionsView from "../ActionsView";
 import { AppStateContext } from "../../context/AppStateContext";
 import DailyVolumes from "../DailyVolumes"
@@ -64,11 +65,7 @@ export default forwardRef((_, ref) => {
                     }
                     
                     const newDailyVolumes = [ ...(volumesData||[]) ];
-                    const now = new Date();
-                    now.setHours(0,0,0,0);
-                    const tzoffset = now.getTimezoneOffset() * 60000; //offset in milliseconds
-                    const nowWithoutTZ = new Date(now.getTime() + tzoffset)
-                    const timestamp = nowWithoutTZ.getTime();
+                    const timestamp = moment.utc().startOf('day').unix() * 1000;
                     const index = newDailyVolumes.findIndex(dv => dv.timestamp === timestamp);
                     
                     if(index !== -1) {
@@ -89,6 +86,8 @@ export default forwardRef((_, ref) => {
                         [`dailyvolumes`],
                         newDailyVolumes
                       );
+
+                      console.log(newDailyVolumes)
                     break;
                     case "Approval":
                         if(action.args.owner.toLowerCase() === appData.address.toLowerCase()) {
