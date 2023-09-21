@@ -67,7 +67,7 @@ export default forwardRef((_, ref) => {
                     const now = new Date();
                     now.setHours(0,0,0,0);
                     const tzoffset = now.getTimezoneOffset() * 60000; //offset in milliseconds
-                    const nowWithoutTZ = new Date(now.getTime() - tzoffset)
+                    const nowWithoutTZ = new Date(now.getTime() + tzoffset)
                     const timestamp = nowWithoutTZ.getTime();
                     const index = newDailyVolumes.findIndex(dv => dv.timestamp === timestamp);
                     
