@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, createRef, useState } from "react";
 import { Stack, Card, Typography, CircularProgress, Divider } from "@mui/material";
 import TransferOperation from "../Operations/TransferOperation";
 import ApprovalOperation from "../Operations/ApprovalOperation";
@@ -8,12 +8,14 @@ export default function ActionsView({ count, title, actions, dataReady, mode }: 
     const animationClass = "animate-brightness";
     const [firstRender, setFirstRender] = useState(true);
     const [actionsCache, setActionsCache] = useState("");
+    const stackRef = createRef<any>();
 
     useEffect(() => {
         if(!actionsCache && actions && actions.length > 0) {
             setActionsCache(JSON.stringify(actions))
         } else if(actions && actions.length > 0) {
             setFirstRender(false)
+            stackRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }, [actions])
     
@@ -26,7 +28,7 @@ export default function ActionsView({ count, title, actions, dataReady, mode }: 
                         <Typography className="text-blue-700 text-sm">{title.toUpperCase()}</Typography>
                     </Stack>
                 </Typography>
-                <Stack direction="column" gap={1} className="min-h-max h-64 overflow-y-auto overflow-x-hidden">
+                <Stack direction="column" gap={1} className="min-h-max h-64 overflow-y-auto overflow-x-hidden" ref={stackRef} position="relative">
                     { !actions || 0 === actions.length ? (
                             <div className="w-full content-center pt-4 justify-center flex">
                                 <CircularProgress />

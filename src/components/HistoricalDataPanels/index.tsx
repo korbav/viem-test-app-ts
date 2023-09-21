@@ -86,8 +86,6 @@ export default forwardRef((_, ref) => {
                         [`dailyvolumes`],
                         newDailyVolumes
                       );
-
-                      console.log(newDailyVolumes)
                     break;
                     case "Approval":
                         if(action.args.owner.toLowerCase() === appData.address.toLowerCase()) {
