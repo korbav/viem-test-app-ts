@@ -4,18 +4,36 @@ import TransferOperation from "../Operations/TransferOperation";
 import ApprovalOperation from "../Operations/ApprovalOperation";
 import Allowance from "../Operations/Allowance/Allowance";
 
+
+const areSetsEqual = (a: Set<string>, b: Set<string>) => {
+    return a.size === b.size && [...a].every(value => b.has(value));
+};
+
 export default function ActionsView({ count, title, actions, dataReady, mode }: { mode: "allowances"|"operations", dataReady ?: boolean, count: number, title: string, actions: null|any[]}) {
     const animationClass = "animate-brightness";
     const [firstRender, setFirstRender] = useState(true);
     const [actionsCache, setActionsCache] = useState("");
+    const [skipAnimation, setSkipAnimation] = useState(false)
     const stackRef = createRef<any>();
 
     useEffect(() => {
-        if(!actionsCache && actions && actions.length > 0) {
+        if(
+            actionsCache 
+            && actions 
+            && areSetsEqual(
+                (new Set(JSON.parse(actionsCache).map((t: any) => t.transactionHash))),
+                (new Set(actions.map((t: any) => t.transactionHash)))
+            )
+        ) {
+            setSkipAnimation(true);
+        }
+        else if(!actionsCache && actions && actions.length > 0) {
             setActionsCache(JSON.stringify(actions))
         } else if(actions && actions.length > 0) {
+            setSkipAnimation(false);
             setFirstRender(false)
             stackRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+            setActionsCache(JSON.stringify(actions))
         }
     }, [actions])
     
@@ -38,7 +56,7 @@ export default function ActionsView({ count, title, actions, dataReady, mode }: 
                             <Stack divider={(<Divider />)} gap={1}>
                             {
                                 (Number.isNaN(count) ? actions.slice(-1 * count) : actions).map((action, index) => {
-                                        const shouldAnimate = !firstRender &&  index === 0;
+                                        const shouldAnimate = !skipAnimation && !firstRender &&  index === 0;
                                         return (
                                             <div key={JSON.stringify(action)} className={`rounded-md ${shouldAnimate ? animationClass : ""}`}>
                                                 {
