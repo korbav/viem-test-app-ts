@@ -112,7 +112,7 @@ export default forwardRef((_, ref) => {
                 [action, ...allUsersOperationsData]
             );
         },
-    }), [userOperationsData, allUsersOperationsData, allowancesData, appData.address]);
+    }), [userOperationsData, allUsersOperationsData, allowancesData, appData.address, volumesData]);
 
 
     return appData.address ? (
