@@ -134,7 +134,7 @@ export default forwardRef((_, ref)  => {
     const [BUSDValue, setBUSDValue] = useState<string>("0");
     const [BUSDReserve, setBUSDReserve] = useState<BigInt>(0n);
     const [WBTCReserve, setWBTCReserve] = useState<BigInt>(0n);
-    const [ slippage, setSlippage ] = useState(10);
+    const [ slippage, setSlippage ] = useState(3);
     const { appData } = useContext(AppStateContext);
 
     const loadData = useCallback(async () => {
