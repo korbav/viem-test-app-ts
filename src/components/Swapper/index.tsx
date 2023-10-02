@@ -292,11 +292,11 @@ export default forwardRef((_, ref)  => {
 
 
 
-    const recomputeWBTCEquivalentValue = useCallback((newBUSDValue: string) => {   
-        const reserveIn = BUSDReserve;
-        const reserveOut = WBTCReserve;     
+    const recomputeWBTCEquivalentValue = useCallback((newBUSDValue: string) => {      
         switch (mode) {
             case Mode.ExactTokenForToken: {
+                const reserveIn = BUSDReserve;
+                const reserveOut = WBTCReserve;  
                 const amountIn = parseFormattedValue(newBUSDValue.replace(".", ""));
                 if (!amountIn) return;
                 const numerator = (amountIn).mul(997).mul(new BigFloat(reserveOut.toString()))
@@ -306,6 +306,8 @@ export default forwardRef((_, ref)  => {
                 break;
             }
             case Mode.TokenForExactToken: {
+                const reserveIn = WBTCReserve;
+                const reserveOut = BUSDReserve;  
                 const amountOut = parseFormattedValue(newBUSDValue.replace(".", ""));
                 if (!amountOut) return;
                 const numerator = (new BigFloat(reserveIn.toString())).mul(amountOut).mul(1000)
@@ -318,11 +320,11 @@ export default forwardRef((_, ref)  => {
     }, [WBTCReserve, BUSDReserve, setWBTCValue]);
 
 
-    const recomputeBUSDEquivalentValue = useCallback((newWBTCValue: string) => {
-        const reserveIn = WBTCReserve;
-        const reserveOut = BUSDReserve;
+    const recomputeBUSDEquivalentValue = (newWBTCValue: string) => {
         switch (mode) {
             case Mode.ExactTokenForToken: {
+                const reserveIn = WBTCReserve;
+                const reserveOut = BUSDReserve;
                 const amountIn = parseFormattedValue(newWBTCValue);
                 if (!amountIn) return;
                 const numerator = (amountIn).mul(997).mul(new BigFloat(reserveOut.toString()))
@@ -332,6 +334,8 @@ export default forwardRef((_, ref)  => {
                 break;
             }
             case Mode.TokenForExactToken: {
+                const reserveIn = BUSDReserve;
+                const reserveOut = WBTCReserve;
                 const amountOut = parseFormattedValue(newWBTCValue);
                 if (!amountOut) return;
                 const numerator = (new BigFloat(reserveIn.toString())).mul(amountOut).mul(1000)
@@ -341,7 +345,7 @@ export default forwardRef((_, ref)  => {
                 break;
             }
         }
-    }, [WBTCReserve, BUSDReserve, BUSDValue, setBUSDValue]);
+    };
 
     const handleBUSDValueChange = useCallback((e: any, customValue?: string) => {
         const val = (customValue !== undefined ? customValue : e.target.value).toString();
@@ -379,6 +383,9 @@ export default forwardRef((_, ref)  => {
                                 <Stack direction="column" gap={4} divider={<Divider orientation="horizontal" flexItem={true} />} >
                                     { /* Reserves */}
                                     <Stack direction="column" gap={2}>
+                                        <div>
+                                        { direction === Direction.BUSD_WTC ? "BUSD_WTC": "WTC_BUSD"}    
+                                        </div>
                                         <Stack direction="row" gap={2} className="items-center">
                                             <AccountBalanceIcon />
                                             <Typography variant="h6">Liquidity Pool Reserves</Typography>
