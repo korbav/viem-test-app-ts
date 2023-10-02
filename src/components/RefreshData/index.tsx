@@ -19,16 +19,16 @@ const genericRefresh = (refresh: () => Promise<void>, pending: string): void => 
     )
 }
 
-export default function RefreshData({ refresh }: { refresh: () => Promise<void> }) {
+export default function RefreshData({ refresh }: { refresh: (isAuto: boolean) => Promise<void> }) {
     const timer = useRef<any>();
     const { appData } = useContext(AppStateContext);
 
     const autoRefresh = useCallback(() => {
-        genericRefresh(refresh, 'Auto Refreshing..');
+        genericRefresh(() => refresh(true), 'Auto Refreshing..');
     }, [refresh]);
 
     const manualRefresh = useCallback(async () => {
-        genericRefresh(refresh, 'Refreshing..');
+        genericRefresh(() => refresh(false), 'Refreshing..');
     }, [refresh]);
 
     useEffect(() => {

@@ -16,6 +16,7 @@
     "@mui/icons-material": "^5.14.8",
     "@mui/material": "^5.14.8",
     "big-integer": "^1.6.51",
+    "bigfloat-esnext": "^3.0.1",
     "chart.js": "^4.4.0",
     "cryptocons": "^1.3.3",
     "cryptocurrency-icons": "^0.18.1",

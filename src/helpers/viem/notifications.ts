@@ -1,14 +1,15 @@
 import { toast } from "react-toastify";
 
-export const genericErrorAlert = (e: Error) => {
-    toast("An errror occurred.", { 
+export const genericErrorAlert = (e: Error, msg: string = "An unexpected error occurred", options = {}) => {
+    toast(msg, { 
         type: "error",
         autoClose: 1000,
         pauseOnHover: false,
         draggable: false,
-        pauseOnFocusLoss: false
+        pauseOnFocusLoss: false,
+        ...options
      });
-    console.log(e);
+     console.log(e);
 }
 
 export const genericSuccessAlert = (successMessage: string = "Operation succeeded.") => {

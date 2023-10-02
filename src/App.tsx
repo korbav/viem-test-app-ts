@@ -17,8 +17,9 @@ import '@fontsource/roboto/700.css';
 
 import './App.css';
 import HistoricalDataPanels from './components/HistoricalDataPanels';
-import { Box, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Stack, Tab, Tabs } from '@mui/material';
 import useWebSocket from 'react-use-websocket';
+import Swapper from './components/Swapper';
 
 type RefreshableComponent = {
   refresh: () => Promise<void>
@@ -66,9 +67,15 @@ function App() {
   const MATICRef = useRef<RefreshableComponent>();
   const HistoricalDataPanelsRef = useRef<RefreshableComponent>();
   const transactionsProgressRef = useRef<any>();
+  const SwapperRef = useRef<RefreshableComponent>();
   const [value, setValue] = useState(0);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (isAuto: boolean = false): Promise<void> => {
+    if(!isAuto) {
+      try {
+        await SwapperRef.current?.refresh();
+      } catch(_) {}
+    }
     try {
       await BUSDRef.current?.refresh();
     } catch(_) {}
@@ -121,12 +128,12 @@ function App() {
                  <>
                  <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                       <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-                        <Tab label="v5"  />
-                        <Tab label="v4" />
+                        <Tab label="Swapper (v5)"  />
+                        <Tab label="Transactions (v4)" />
                       </Tabs>
                     </Box>
                     <CustomTabPanel value={value} index={0}>
-                      V5 comes here
+                      <Swapper ref={SwapperRef} />
                     </CustomTabPanel>
                     <CustomTabPanel value={value} index={1}>
                       <TransactionsProgress ref={transactionsProgressRef} />

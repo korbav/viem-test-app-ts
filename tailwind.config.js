@@ -14,9 +14,16 @@ export default {
           '30%': {  background:  'rgba(210,240,255,1)' },
           '60%, 100%': { filter: "blur(0px) invert(0)", "mask-image": 'linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 1))', "mask-size": "100% 100%", background:  'rgba(255,255,255,1)' },
         },
+        swapping: {
+          '0%':  {   filter: "opacity(0.33)" },
+          '10%':  {   filter: "opacity(1)" },
+          '20%':  {   filter: "opacity(0.33)" },
+          '30%, 100%': { filter: "opacity(1)" },
+        },
       },
       animation: {
         'brightness': 'brightness 0.9s 3 linear forwards',
+        'swapping': 'swapping 2.5s infinite linear',
       },
     },
   },
