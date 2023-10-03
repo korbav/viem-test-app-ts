@@ -205,8 +205,8 @@ export default forwardRef((_, ref)  => {
 
     
     const stripCommas = (val: string): string => val.replace(/,/g, "");
-    const parseBUSDValue = (val: string): BigInt => BigInt(Math.floor(parseFloat(val.replace(/,/g, "")) * (10 ** BUSD_DECIMALS)))
-    const parseWBTCValue = (val: string): BigInt => BigInt(Math.floor(parseFloat(val.replace(/,/g, "")) * (10 ** WBTC_DECIMALS)))
+    const parseBUSDValue = (val: string): BigInt => BigInt(Math.floor(parseFloat(stripCommas(val)) * (10 ** BUSD_DECIMALS)))
+    const parseWBTCValue = (val: string): BigInt => BigInt(Math.floor(parseFloat(stripCommas(val)) * (10 ** WBTC_DECIMALS)))
 
     const handleSwap = useCallback(async () => {
         if (BUSDValue.toString() === "0" && WBTCValue.toString() === "0") {
