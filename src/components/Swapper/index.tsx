@@ -2,7 +2,6 @@ import { Card, Stack, Typography, TextField, Button, Divider, CircularProgress, 
 import LoopIcon from '@mui/icons-material/Loop';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useCallback, useEffect, useState, useContext, forwardRef, useImperativeHandle } from "react";
-import { BigFloat } from "bigfloat-esnext";
 import { Abi, Account, Address, GetContractReturnType, PublicClient, WalletClient, getContract } from "viem";
 import SwapCallsIcon from '@mui/icons-material/SwapCalls';
 import { BinanceUsd, BitcoinWrapped } from 'cryptocons'
@@ -15,9 +14,10 @@ import WBTC_ABI from "../../assets/WBTC_ABI.json";
 import BUSD_ABI from "../../assets/BUSD_ABI.json";
 import Uniswap_Router_ABI from "../../assets/Uniswap_Router_ABI.json";
 import { AppStateContext } from "../../context/AppStateContext";
-import { formatValueSwappper, parseFormattedValue } from "../../helpers/format";
+import { formatValueSwappper } from "../../helpers/format";
 import { genericErrorAlert } from "../../helpers/viem/notifications";
 import OperationSummary from "../OperationSummary";
+import bigInt from "big-integer";
 
 const darkTheme = createTheme({
     palette: {
@@ -74,21 +74,21 @@ function getWBTCContractObject(): GetContractReturnType<Abi, PublicClient, Walle
     return getContract(getWBTCContractParameters() as any) as GetContractReturnType<Abi, PublicClient, WalletClient>;
 }
 
-async function approve(parameters: any, address: string, value: BigFloat, decimals: number) {
+async function approve(parameters: any, address: string, value: BigInt) {
     await getTestClient().writeContract({
         ...parameters,
         functionName: 'approve',
-        args: [UniswapMumbaiRouterAddress, (value.mul(10 ** decimals).toString())],
+        args: [UniswapMumbaiRouterAddress, value.toString()],
         account: address as unknown as Account
     })
 }
 
-async function approveWBTC(address: string, value: BigFloat) {
-    await approve(getWBTCContractParameters(), address, value, WBTC_DECIMALS);
+async function approveWBTC(address: string, value: BigInt) {
+    await approve(getWBTCContractParameters(), address, value);
 }
 
-async function approveBUSD(address: string, value: BigFloat) {
-    await approve(getBUSDContractParameters(), address, value, BUSD_DECIMALS);
+async function approveBUSD(address: string, value: BigInt) {
+    await approve(getBUSDContractParameters(), address, value);
 }
 
 async function swap(
@@ -134,7 +134,7 @@ export default forwardRef((_, ref)  => {
     const [BUSDValue, setBUSDValue] = useState<string>("0");
     const [BUSDReserve, setBUSDReserve] = useState<BigInt>(0n);
     const [WBTCReserve, setWBTCReserve] = useState<BigInt>(0n);
-    const [ slippage, setSlippage ] = useState(3);
+    const [ slippage, setSlippage ] = useState(1);
     const { appData } = useContext(AppStateContext);
 
     const loadData = useCallback(async () => {
@@ -169,56 +169,64 @@ export default forwardRef((_, ref)  => {
     }, []);
 
     const getMaxWBTCValue = useCallback((val?: string) => {
-        let WBTCDesiredValue;
-        const WBTCBalanceFloat = new BigFloat(WBTCBalance.toString());
-        const WBTCReserveFloat = new BigFloat(WBTCReserve.toString());
-
+        let WBTCDesiredValue: BigInt;
+        let ret;
         if (undefined !== val) {
-            WBTCDesiredValue = new BigFloat(val);
-            if (WBTCBalanceFloat.greaterThan(WBTCReserveFloat)) {
-                return WBTCDesiredValue.greaterThan(WBTCReserveFloat) ? WBTCReserveFloat : WBTCDesiredValue
+            ret = WBTCDesiredValue = BigInt(parseFloat(val) * (10 ** WBTC_DECIMALS));
+            if (WBTCBalance > WBTCReserve) {
+                ret =  WBTCDesiredValue > WBTCReserve ? WBTCReserve : WBTCDesiredValue
             } else {
-                return WBTCDesiredValue?.greaterThan(WBTCBalanceFloat) ? WBTCBalanceFloat : WBTCDesiredValue
+                ret =  WBTCDesiredValue > WBTCBalance ? WBTCBalance : WBTCDesiredValue
             }
         }
-        return WBTCBalanceFloat.greaterThan(WBTCReserveFloat) ? WBTCReserveFloat : WBTCBalanceFloat
+        else {
+            ret =  WBTCBalance > WBTCReserve ? WBTCReserve : WBTCBalance
+        }
+        return bigInt(ret.toString()).toJSNumber() / (10 ** WBTC_DECIMALS);
     }, [WBTCBalance, WBTCReserve]);
 
     const getMaxBUSDValue = useCallback((val?: string) => {
-        let BUSDDesiredValue;
-        const BUSDBalanceFloat = new BigFloat(BUSDBalance.toString());
-        const BUSDReserveFloat = new BigFloat(BUSDReserve.toString());
-
+        let BUSDDesiredValue: BigInt;
+        let ret;
         if (undefined !== val) {
-            BUSDDesiredValue = new BigFloat(val);
-            if (BUSDBalanceFloat.greaterThan(BUSDReserveFloat)) {
-                return BUSDDesiredValue?.greaterThan(BUSDReserveFloat) ? BUSDReserveFloat : BUSDDesiredValue
+            BUSDDesiredValue = BigInt(parseFloat(val) * (10 ** BUSD_DECIMALS));
+            if (BUSDBalance > BUSDReserve) {
+                ret = BUSDDesiredValue > BUSDReserve ? BUSDReserve : BUSDDesiredValue
             } else {
-                return BUSDDesiredValue?.greaterThan(BUSDBalanceFloat) ? BUSDBalanceFloat : BUSDDesiredValue
+                ret = BUSDDesiredValue > BUSDBalance ? BUSDBalance : BUSDDesiredValue
             }
         }
-        return BUSDBalanceFloat.greaterThan(BUSDReserveFloat) ? BUSDReserveFloat : BUSDBalanceFloat
+        else {
+            ret = BUSDBalance > BUSDReserve ? BUSDReserve : BUSDBalance
+        }
+
+        return bigInt(ret.toString()).toJSNumber() / (10 ** BUSD_DECIMALS);
     }, [BUSDBalance, BUSDReserve]);
+
+    
+    const stripCommas = (val: string): string => val.replace(/,/g, "");
+    const parseBUSDValue = (val: string): BigInt => BigInt(Math.floor(parseFloat(val.replace(/,/g, "")) * (10 ** BUSD_DECIMALS)))
+    const parseWBTCValue = (val: string): BigInt => BigInt(Math.floor(parseFloat(val.replace(/,/g, "")) * (10 ** WBTC_DECIMALS)))
 
     const handleSwap = useCallback(async () => {
         if (BUSDValue.toString() === "0" && WBTCValue.toString() === "0") {
             return;
         }
 
-        const BUSDFloatValue = parseFormattedValue(BUSDValue);
-        const WBTCFloatValue = parseFormattedValue(WBTCValue);
+        const BUSDParsedValue = parseBUSDValue(BUSDValue);
+        const WBTCParsedValue = parseWBTCValue(WBTCValue);
 
         try {
             if(direction === Direction.BUSD_WTC) {
-                if(new BigFloat(BUSDBalance.toString()).lessThan(BUSDFloatValue)) {
+                if(BUSDBalance < BUSDParsedValue) {
                     throw { title: "BUSD value", msg: "Insufficient BUSD tokens in balance" };
-                } else if(new BigFloat(WBTCReserve.toString()).lessThan(WBTCFloatValue)) {
+                } else if(WBTCReserve < WBTCParsedValue) {
                     throw { title: "WBTC value", msg: "Insufficient WBTC tokens in reserve" };
                 }
             } else {
-                if(new BigFloat(WBTCBalance.toString()).lessThan(WBTCFloatValue)) {
+                if(WBTCBalance < WBTCParsedValue) {
                     throw { title: "WBTC value", msg: "Insufficient WBTC tokens in balance" };
-                } else if(new BigFloat(BUSDReserve.toString()).lessThan(BUSDFloatValue)) {
+                } else if(BUSDReserve < BUSDParsedValue) {
                     throw { title: "BUSD value", msg: "Insufficient BUSD tokens in reserve" };
                 }
                 }
@@ -232,11 +240,11 @@ export default forwardRef((_, ref)  => {
                     case Direction.BUSD_WTC:
                         setIsSwapping(true);
                         try {
-                            await approveBUSD(appData.address!, BUSDFloatValue);
+                            await approveBUSD(appData.address!, BUSDParsedValue);
                             await swapExactTokensForTokens(
                                 appData.address!,
-                                (BUSDFloatValue.mul(10 ** BUSD_DECIMALS).toString()),
-                                (WBTCFloatValue.mul((100 - slippage) / 100).mul(10 ** WBTC_DECIMALS).toString()),
+                                BUSDParsedValue.toString(),
+                                (BigInt(Math.floor(parseFloat(stripCommas(WBTCValue)) * ((100 - slippage) / 100)))  * (10n ** BigInt(WBTC_DECIMALS))).toString(),
                                 direction
                             );
                         } catch (e) {
@@ -247,11 +255,11 @@ export default forwardRef((_, ref)  => {
                     case Direction.WTC_BUSD:
                         setIsSwapping(true);
                         try {
-                            await approveWBTC(appData.address!, WBTCFloatValue);
+                            await approveWBTC(appData.address!, WBTCParsedValue);
                             await swapExactTokensForTokens(
                                 appData.address!,
-                                (WBTCFloatValue.mul(10 ** WBTC_DECIMALS).toString()),
-                                (BUSDFloatValue.mul((100 - slippage) / 100).mul(10 ** BUSD_DECIMALS).toString()),
+                                WBTCParsedValue.toString(),
+                                (BigInt(Math.floor(parseFloat(stripCommas(BUSDValue)) * ((100 - slippage) / 100))) * (10n ** BigInt(BUSD_DECIMALS))) .toString(),
                                 direction
                             );
                         } catch (e) {
@@ -263,85 +271,87 @@ export default forwardRef((_, ref)  => {
                 break;
             case Mode.TokenForExactToken:
                 switch (direction) {
-                    case Direction.BUSD_WTC:
+                    case Direction.BUSD_WTC: {
+                            setIsSwapping(true);
+                            const value = Math.floor(parseFloat(stripCommas(BUSDValue)) * (1 + slippage/ 100) * (10 ** BUSD_DECIMALS));
+                            await approveBUSD(appData.address!, BigInt(value));
+                            await swapTokensForExactTokens(
+                                appData.address!,
+                                WBTCParsedValue.toString(),
+                                value.toString(),
+                                direction
+                            );
+                            setIsSwapping(false);
+                            break;
+                        }
+                    case Direction.WTC_BUSD: {
                         setIsSwapping(true);
-                        await approveBUSD(appData.address!, BUSDFloatValue.mul(1 + slippage/ 100));
+                        const value = Math.floor(parseFloat(stripCommas(WBTCValue)) * (1 + slippage/ 100) * (10 ** WBTC_DECIMALS));
+                        await approveWBTC(appData.address!, BigInt(value));
                         await swapTokensForExactTokens(
                             appData.address!,
-                            (WBTCFloatValue.mul(10 ** WBTC_DECIMALS).toString()),
-                            (BUSDFloatValue.mul(1 + slippage/ 100).mul(10 ** BUSD_DECIMALS).toString()),
+                            BUSDParsedValue.toString(),
+                            value.toString(),
                             direction
                         );
                         setIsSwapping(false);
                         break;
-                    case Direction.WTC_BUSD:
-                        setIsSwapping(true);
-                        await approveWBTC(appData.address!, WBTCFloatValue.mul(1 + slippage/ 100));
-                        await swapTokensForExactTokens(
-                            appData.address!,
-                            (BUSDFloatValue.mul(10 ** BUSD_DECIMALS).toString()),
-                            (WBTCFloatValue.mul(1 + slippage/ 100).mul(10 ** WBTC_DECIMALS).toString()),
-                            direction
-                        );
-                        setIsSwapping(false);
-                        break;
+                    }
                 }
                 break;
         }
     }, [BUSDValue, WBTCValue, BUSDBalance, WBTCBalance, WBTCReserve, BUSDReserve]);
 
-
-
     const recomputeWBTCEquivalentValue = useCallback((newBUSDValue: string) => {      
         switch (mode) {
             case Mode.ExactTokenForToken: {
+                console.log("recomputeWBTCEquivalentValue > ExactTokenForToken", mode)
                 const reserveIn = BUSDReserve;
-                const reserveOut = WBTCReserve;  
-                const amountIn = parseFormattedValue(newBUSDValue.replace(".", ""));
-                if (!amountIn) return;
-                const numerator = (amountIn).mul(997).mul(new BigFloat(reserveOut.toString()))
-                const denominator = (new BigFloat(reserveIn.toString()).mul(1000)).add(amountIn.mul(997))
-                const amountOut = numerator.div(denominator)
-                setWBTCValue(formatValueSwappper(amountOut.toString()));
+                const reserveOut = WBTCReserve;
+                const amountIn = parseFloat(stripCommas(newBUSDValue) || "0")
+                if (!amountIn) return setWBTCValue("0");
+                const computedValue =  (amountIn * 997 * (parseFloat(reserveOut.toString()) / (10 ** WBTC_DECIMALS))) /
+                        (((parseFloat(reserveIn.toString()) / (10 ** BUSD_DECIMALS)) * 1000 ) + (amountIn * 997));
+                setWBTCValue(formatValueSwappper((computedValue).toString()));
                 break;
             }
             case Mode.TokenForExactToken: {
+                console.log("recomputeWBTCEquivalentValue > TokenForExactToken", mode)
                 const reserveIn = WBTCReserve;
-                const reserveOut = BUSDReserve;  
-                const amountOut = parseFormattedValue(newBUSDValue.replace(".", ""));
-                if (!amountOut) return;
-                const numerator = (new BigFloat(reserveIn.toString())).mul(amountOut).mul(1000)
-                const denominator = (new BigFloat(reserveOut.toString())).sub((amountOut).mul(997));
-                const amountIn = (numerator.div(denominator)).add(1);
-                setWBTCValue(formatValueSwappper(amountIn.toString()));
+                const reserveOut = BUSDReserve;
+                const amountOut = parseFloat(stripCommas(newBUSDValue) || "0");
+                if (!amountOut) return setWBTCValue("0");
+                const computedValue = (10 ** -WBTC_DECIMALS) + 
+                    ((parseFloat(reserveIn.toString()) / (10 ** WBTC_DECIMALS)) * amountOut * 1000) / 
+                    (((parseFloat(reserveOut.toString()) / (10 ** BUSD_DECIMALS) - amountOut) * 997))
+                 setWBTCValue(formatValueSwappper((computedValue).toString()));
                 break;
             }
         }
-    }, [WBTCReserve, BUSDReserve, setWBTCValue]);
+    }, [WBTCReserve, BUSDReserve, setWBTCValue, mode]);
 
 
     const recomputeBUSDEquivalentValue = (newWBTCValue: string) => {
         switch (mode) {
             case Mode.ExactTokenForToken: {
+                console.log("recomputeBUSDEquivalentValue > ExactTokenForToken", mode)
                 const reserveIn = WBTCReserve;
                 const reserveOut = BUSDReserve;
-                const amountIn = parseFormattedValue(newWBTCValue);
-                if (!amountIn) return;
-                const numerator = (amountIn).mul(997).mul(new BigFloat(reserveOut.toString()))
-                const denominator = (new BigFloat(reserveIn.toString()).mul(1000)).add(amountIn.mul(997))
-                const amountOut = numerator.div(denominator)
-                setBUSDValue(formatValueSwappper(amountOut.toString()));
+                const amountIn = parseFloat(stripCommas(newWBTCValue) || "0")
+                const computedValue = (amountIn * 997 * (parseFloat(reserveOut.toString()) / (10 ** BUSD_DECIMALS))) / 
+                    (((parseFloat(reserveIn.toString()) / (10 ** WBTC_DECIMALS)) * 1000 ) + (amountIn * 997))
+                setBUSDValue(formatValueSwappper(computedValue.toString()));
                 break;
             }
             case Mode.TokenForExactToken: {
+                console.log("recomputeBUSDEquivalentValue > ExactTokenForToken", mode)
                 const reserveIn = BUSDReserve;
                 const reserveOut = WBTCReserve;
-                const amountOut = parseFormattedValue(newWBTCValue);
-                if (!amountOut) return;
-                const numerator = (new BigFloat(reserveIn.toString())).mul(amountOut).mul(1000)
-                const denominator = (new BigFloat(reserveOut.toString())).sub((amountOut).mul(997));
-                const amountIn = (numerator.div(denominator)).add(1);
-                setBUSDValue(formatValueSwappper(amountIn.toString()));
+                const amountOut = parseFloat(stripCommas(newWBTCValue) || "0");
+                const computedValue = (10 ** -BUSD_DECIMALS) + 
+                    ((parseFloat(reserveIn.toString()) / (10 ** BUSD_DECIMALS)) * amountOut * 1000) / 
+                    (((parseFloat(reserveOut.toString()) / (10 ** WBTC_DECIMALS) - amountOut) * 997))
+                 setBUSDValue(formatValueSwappper((computedValue).toString()));
                 break;
             }
         }
@@ -383,20 +393,17 @@ export default forwardRef((_, ref)  => {
                                 <Stack direction="column" gap={4} divider={<Divider orientation="horizontal" flexItem={true} />} >
                                     { /* Reserves */}
                                     <Stack direction="column" gap={2}>
-                                        <div>
-                                        { direction === Direction.BUSD_WTC ? "BUSD_WTC": "WTC_BUSD"}    
-                                        </div>
                                         <Stack direction="row" gap={2} className="items-center">
                                             <AccountBalanceIcon />
                                             <Typography variant="h6">Liquidity Pool Reserves</Typography>
                                         </Stack>
                                         <Stack direction="row" gap={2} className="items-center">
                                             <BinanceUsd />
-                                            <Typography variant="caption">{formatValueSwappper(BUSDReserve.toString())}</Typography>
+                                            <Typography variant="caption">{formatValueSwappper((bigInt(BUSDReserve.toString()).toJSNumber() / (10 ** BUSD_DECIMALS)).toString())}</Typography>
                                         </Stack>
                                         <Stack direction="row" gap={2} className="items-center">
                                             <BitcoinWrapped />
-                                            <Typography variant="caption">{formatValueSwappper(WBTCReserve.toString())}</Typography>
+                                            <Typography variant="caption">{formatValueSwappper((bigInt(WBTCReserve.toString()).toJSNumber() / (10 ** WBTC_DECIMALS)).toString())}</Typography>
                                         </Stack>
                                     </Stack>
                                     { /* Balances */}
@@ -407,11 +414,11 @@ export default forwardRef((_, ref)  => {
                                         </Stack>
                                         <Stack direction="row" gap={2} className="items-center">
                                             <BinanceUsd />
-                                            <Typography variant="caption">{formatValueSwappper(BUSDBalance.toString())}</Typography>
+                                            <Typography variant="caption">{formatValueSwappper((bigInt(BUSDBalance.toString()).toJSNumber() / (10 ** BUSD_DECIMALS)).toString())}</Typography>
                                         </Stack>
                                         <Stack direction="row" gap={2} className="items-center">
                                             <BitcoinWrapped />
-                                            <Typography variant="caption">{formatValueSwappper(WBTCBalance.toString())}</Typography>
+                                            <Typography variant="caption">{formatValueSwappper((bigInt(WBTCBalance.toString()).toJSNumber() / (10 ** WBTC_DECIMALS)).toString())}</Typography>
                                         </Stack>
                                     </Stack>
                                     { /* Slippage */}
@@ -427,16 +434,16 @@ export default forwardRef((_, ref)  => {
                                                     setSlippage(newValue as number);
                                                 }}
                                                 min={0}
-                                                max={5}
+                                                max={1}
                                                 step={0.1}
                                                 size="small"
-                                                defaultValue={3}
+                                                defaultValue={0.5}
                                                 aria-label="Small"
                                                 valueLabelDisplay="off"
                                                 marks
                                                 sx={{ mx: 3 }}
                                             />
-                                            <Typography>5%</Typography>
+                                            <Typography>1%</Typography>
                                         </Stack>
                                     </Stack>
                                 </Stack>
